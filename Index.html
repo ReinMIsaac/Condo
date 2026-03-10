@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Condo Buyers Dashboard</title>
+
+    <!-- 1. โหลด Tailwind CSS สำหรับตกแต่ง -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 2. โหลด Chart.js สำหรับทำกราฟ -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- 3. โหลด FontAwesome สำหรับไอคอน -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- 4. โหลดข้อมูลจากไฟล์ data.js (รองรับทั้ง JSON Format และ CSV) -->
+    <script src="data.js" onerror="console.log('ยังไม่มีไฟล์ data.js ระบบจะใช้โหมดอัปโหลด')"></script>
+
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen font-sans">
+
+    <!-- ================= หน้าจออัปโหลดไฟล์ ================= -->
+    <div id="upload-screen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-xl max-w-lg w-full text-center">
+            <div class="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-cloud-upload-alt text-blue-600 text-4xl"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-slate-800 mb-2">อัปโหลดไฟล์ข้อมูลของคุณ</h1>
+            <p class="text-slate-500 mb-6">กรุณาเลือกไฟล์ <span class="font-semibold text-slate-700">condo_buyers_1000...csv</span></p>
+            
+            <div class="mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200 text-sm">
+                <p class="text-slate-600 mb-2"><i class="fas fa-info-circle text-blue-500 mr-1"></i> หากยังไม่มีไฟล์ข้อมูล สามารถดาวน์โหลดได้ที่นี่</p>
+                <a href="https://drive.google.com/file/d/1DYPqK2MxFhJdYfQ3SIg0_QPx5X_bxV4Y/view?usp=sharing" target="_blank" class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-semibold hover:underline transition-colors">
+                    <i class="fas fa-download"></i> โหลดไฟล์ Condo CSV (ชั่วคราว)
+                </a>
+            </div>
+
+            <!-- ปุ่ม Case Study (จะแสดงผลก็ต่อเมื่อมีไฟล์ data.js อยู่ในโฟลเดอร์เดียวกัน) -->
+            <button id="btn-default-data" class="hidden w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-xl transition-colors mb-4 shadow-md flex items-center justify-center gap-3 text-lg">
+                <i class="fas fa-chart-pie"></i> ดูข้อมูล Case Study (Condo 1000 Data)
+            </button>
+            <p id="data-status-text" class="text-sm text-emerald-600 font-medium mb-4 hidden"><i class="fas fa-check-circle"></i> ตรวจพบไฟล์ข้อมูล data.js แล้ว พร้อมใช้งาน!</p>
+
+            <!-- ปุ่มอัปโหลด -->
+            <label class="block w-full cursor-pointer bg-slate-50 border border-slate-300 hover:bg-slate-100 transition-colors rounded-xl p-4 text-slate-600 font-medium mb-4">
+                <input type="file" id="csv-file-input" accept=".csv" class="hidden" />
+                <i class="fas fa-upload mr-2"></i> อัปโหลดไฟล์ CSV ใหม่
+            </label>
+            
+        </div>
+    </div>
+
+    <!-- ================= หน้าจอ Dashboard หลัก ================= -->
+    <div id="dashboard-screen" class="hidden p-4 md:p-8">
+        <div class="max-w-7xl mx-auto space-y-6">
+            
+            <!-- Header -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between bg-white p-6 rounded-2xl shadow-sm">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold text-slate-800">แดชบอร์ดวิเคราะห์พฤติกรรมผู้ซื้อคอนโด</h1>
+                    <p class="text-slate-500 mt-1 flex items-center gap-2">
+                        <i class="fas fa-file-csv"></i> แหล่งข้อมูล: <span id="display-filename" class="font-medium text-slate-700"></span>
+                    </p>
+                </div>
+                <button onclick="window.location.reload()" class="mt-4 md:mt-0 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium">
+                    อัปโหลดไฟล์ใหม่
+                </button>
+            </div>
+
+            <!-- Filters -->
+            <div class="bg-white p-4 rounded-2xl shadow-sm space-y-3">
+                <div class="flex items-center gap-2 text-slate-700 font-semibold border-b pb-2 border-slate-100 text-sm">
+                    <i class="fas fa-filter"></i>
+                    <span>ตัวกรองข้อมูล (Filters)</span>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">ประเภทผู้ซื้อ</label>
+                        <select id="filter-buyer" class="w-full bg-slate-50 border border-slate-200 text-slate-700 rounded-lg py-1.5 px-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="All">ทั้งหมด</option>
+                            <option value="Local">Local (ในประเทศ)</option>
+                            <option value="Foreign">Foreign (ต่างชาติ)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">วัตถุประสงค์</label>
+                        <select id="filter-purpose" class="w-full bg-slate-50 border border-slate-200 text-slate-700 rounded-lg py-1.5 px-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="All">ทั้งหมด</option>
+                            <option value="Own Use">Own Use (อยู่เอง)</option>
+                            <option value="Investment">Investment (ลงทุน)</option>
+                            <option value="Mixed">Mixed (อยู่เอง + ลงทุน)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">รูปแบบห้อง</label>
+                        <select id="filter-condo" class="w-full bg-slate-50 border border-slate-200 text-slate-700 rounded-lg py-1.5 px-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="All">ทั้งหมด</option>
+                            <option value="Studio">Studio</option>
+                            <option value="1BR">1 Bedroom</option>
+                            <option value="2BR">2 Bedroom</option>
+                            <option value="3BR">3 Bedroom</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">สัญชาติ</label>
+                        <select id="filter-nationality" class="w-full bg-slate-50 border border-slate-200 text-slate-700 rounded-lg py-1.5 px-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="All">ทั้งหมด</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">ช่วงอายุ</label>
+                        <select id="filter-age" class="w-full bg-slate-50 border border-slate-200 text-slate-700 rounded-lg py-1.5 px-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="All">ทั้งหมด</option>
+                            <option value="<30">ต่ำกว่า 30 ปี</option>
+                            <option value="30-39">30 - 39 ปี</option>
+                            <option value="40-49">40 - 49 ปี</option>
+                            <option value="50+">50 ปีขึ้นไป</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">เพศ</label>
+                        <select id="filter-gender" class="w-full bg-slate-50 border border-slate-200 text-slate-700 rounded-lg py-1.5 px-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="All">ทั้งหมด</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">แหล่งเงินทุน</label>
+                        <select id="filter-funding" class="w-full bg-slate-50 border border-slate-200 text-slate-700 rounded-lg py-1.5 px-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="All">ทั้งหมด</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPIs -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-blue-500">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-blue-100 w-12 h-12 flex items-center justify-center rounded-xl text-blue-600">
+                            <i class="fas fa-users text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-slate-500">จำนวนผู้ซื้อ (ราย)</p>
+                            <h3 id="kpi-total" class="text-2xl font-bold text-slate-800">0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-emerald-500">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-emerald-100 w-12 h-12 flex items-center justify-center rounded-xl text-emerald-600">
+                            <i class="fas fa-dollar-sign text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-slate-500">งบประมาณเฉลี่ย (บาท)</p>
+                            <h3 id="kpi-budget" class="text-2xl font-bold text-slate-800">0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-violet-500">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-violet-100 w-12 h-12 flex items-center justify-center rounded-xl text-violet-600">
+                            <i class="fas fa-money-bill-wave text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-slate-500">รายได้เฉลี่ย (บาท/เดือน)</p>
+                            <h3 id="kpi-income" class="text-2xl font-bold text-slate-800">0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-amber-500">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-amber-100 w-12 h-12 flex items-center justify-center rounded-xl text-amber-600">
+                            <i class="fas fa-map-marker-alt text-xl"></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <p class="text-sm font-medium text-slate-500">ทำเลยอดนิยมสูงสุด</p>
+                            <h3 id="kpi-location" class="text-lg font-bold text-slate-800 truncate">-</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-rose-500">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-rose-100 w-12 h-12 flex items-center justify-center rounded-xl text-rose-600">
+                            <i class="fas fa-chart-line text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-slate-500">Rental Yield คาดหวัง</p>
+                            <h3 id="kpi-yield" class="text-2xl font-bold text-slate-800">0%</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart Toolbar (เมนูเปิด-ปิดกราฟ) -->
+            <div class="flex items-center justify-between mt-8 mb-2">
+                <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fas fa-chart-pie text-slate-400"></i> สถิติและการวิเคราะห์
+                </h2>
+                <div class="relative">
+                    <button onclick="toggleChartMenu()" class="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg shadow-sm hover:bg-slate-50 transition-colors text-sm font-medium flex items-center gap-2">
+                        <i class="fas fa-list-check"></i> เลือกกราฟที่แสดง <i class="fas fa-chevron-down text-xs ml-1"></i>
+                    </button>
+                    <!-- Dropdown Content -->
+                    <div id="chart-selector-menu" class="hidden absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-slate-100 z-50 p-4">
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">แสดง/ซ่อนกราฟ</p>
+                        <div class="flex flex-col gap-2">
+                            <label class="flex items-center space-x-3 cursor-pointer p-1 hover:bg-slate-50 rounded">
+                                <input type="checkbox" checked onchange="toggleCard('card-location', this)" class="w-4 h-4 rounded text-blue-500 focus:ring-blue-500">
+                                <span class="text-sm text-slate-700">ทำเลที่ต้องการ</span>
+                            </label>
+                            <label class="flex items-center space-x-3 cursor-pointer p-1 hover:bg-slate-50 rounded">
+                                <input type="checkbox" checked onchange="toggleCard('card-purpose', this)" class="w-4 h-4 rounded text-blue-500 focus:ring-blue-500">
+                                <span class="text-sm text-slate-700">วัตถุประสงค์การซื้อ</span>
+                            </label>
+                            <label class="flex items-center space-x-3 cursor-pointer p-1 hover:bg-slate-50 rounded">
+                                <input type="checkbox" checked onchange="toggleCard('card-condo', this)" class="w-4 h-4 rounded text-blue-500 focus:ring-blue-500">
+                                <span class="text-sm text-slate-700">รูปแบบห้อง</span>
+                            </label>
+                            <label class="flex items-center space-x-3 cursor-pointer p-1 hover:bg-slate-50 rounded">
+                                <input type="checkbox" checked onchange="toggleCard('card-age', this)" class="w-4 h-4 rounded text-blue-500 focus:ring-blue-500">
+                                <span class="text-sm text-slate-700">ช่วงอายุ</span>
+                            </label>
+                            <label class="flex items-center space-x-3 cursor-pointer p-1 hover:bg-slate-50 rounded">
+                                <input type="checkbox" checked onchange="toggleCard('card-amenities', this)" class="w-4 h-4 rounded text-blue-500 focus:ring-blue-500">
+                                <span class="text-sm text-slate-700">สิ่งอำนวยความสะดวก</span>
+                            </label>
+                            <label class="flex items-center space-x-3 cursor-pointer p-1 hover:bg-slate-50 rounded">
+                                <input type="checkbox" checked onchange="toggleCard('card-unitsize', this)" class="w-4 h-4 rounded text-blue-500 focus:ring-blue-500">
+                                <span class="text-sm text-slate-700">ขนาดห้อง</span>
+                            </label>
+                            <label class="flex items-center space-x-3 cursor-pointer p-1 hover:bg-slate-50 rounded">
+                                <input type="checkbox" checked onchange="toggleCard('card-ratings', this)" class="w-4 h-4 rounded text-blue-500 focus:ring-blue-500">
+                                <span class="text-sm text-slate-700">คะแนนความพึงพอใจ</span>
+                            </label>
+                            <label class="flex items-center space-x-3 cursor-pointer p-1 hover:bg-slate-50 rounded">
+                                <input type="checkbox" checked onchange="toggleCard('card-funding', this)" class="w-4 h-4 rounded text-blue-500 focus:ring-blue-500">
+                                <span class="text-sm text-slate-700">แหล่งเงินทุน</span>
+                            </label>
+                            <label class="flex items-center space-x-3 cursor-pointer p-1 hover:bg-slate-50 rounded">
+                                <input type="checkbox" checked onchange="toggleCard('card-mortgage', this)" class="w-4 h-4 rounded text-blue-500 focus:ring-blue-500">
+                                <span class="text-sm text-slate-700">สถานะอนุมัติสินเชื่อ</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts (ปรับ Layout เป็น Grid สำหรับ 1x1 ธรรมดา) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="charts-container">
+                
+                <!-- 1. กราฟทำเล -->
+                <div id="card-location" class="bg-white rounded-2xl shadow-sm flex flex-col transition-all overflow-hidden">
+                    <div class="p-5 flex items-center justify-between bg-white z-10">
+                        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fas fa-map-pin text-slate-400"></i> ทำเลที่ต้องการ
+                        </h3>
+                        <button onclick="toggleMinimize('body-location', 'icon-location')" class="text-slate-400 hover:text-slate-600 outline-none">
+                            <i id="icon-location" class="fas fa-chevron-up transition-transform"></i>
+                        </button>
+                    </div>
+                    <div id="body-location" class="px-5 pb-5 relative h-60 w-full transition-all">
+                        <canvas id="chartLocation"></canvas>
+                    </div>
+                </div>
+
+                <!-- 2. กราฟวัตถุประสงค์ -->
+                <div id="card-purpose" class="bg-white rounded-2xl shadow-sm flex flex-col transition-all overflow-hidden">
+                    <div class="p-5 flex items-center justify-between bg-white z-10">
+                        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fas fa-bullseye text-slate-400"></i> วัตถุประสงค์
+                        </h3>
+                        <button onclick="toggleMinimize('body-purpose', 'icon-purpose')" class="text-slate-400 hover:text-slate-600 outline-none">
+                            <i id="icon-purpose" class="fas fa-chevron-up transition-transform"></i>
+                        </button>
+                    </div>
+                    <div id="body-purpose" class="px-5 pb-5 relative h-60 flex justify-center w-full transition-all">
+                        <canvas id="chartPurpose"></canvas>
+                    </div>
+                </div>
+
+                <!-- 3. กราฟรูปแบบห้อง -->
+                <div id="card-condo" class="bg-white rounded-2xl shadow-sm flex flex-col transition-all overflow-hidden">
+                    <div class="p-5 flex items-center justify-between bg-white z-10">
+                        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fas fa-building text-slate-400"></i> รูปแบบห้อง
+                        </h3>
+                        <button onclick="toggleMinimize('body-condo', 'icon-condo')" class="text-slate-400 hover:text-slate-600 outline-none">
+                            <i id="icon-condo" class="fas fa-chevron-up transition-transform"></i>
+                        </button>
+                    </div>
+                    <div id="body-condo" class="px-5 pb-5 relative h-60 flex justify-center w-full transition-all">
+                        <canvas id="chartCondoType"></canvas>
+                    </div>
+                </div>
+
+                <!-- 4. กราฟช่วงอายุ -->
+                <div id="card-age" class="bg-white rounded-2xl shadow-sm flex flex-col transition-all overflow-hidden">
+                    <div class="p-5 flex items-center justify-between bg-white z-10">
+                        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fas fa-user-clock text-slate-400"></i> ช่วงอายุ
+                        </h3>
+                        <button onclick="toggleMinimize('body-age', 'icon-age')" class="text-slate-400 hover:text-slate-600 outline-none">
+                            <i id="icon-age" class="fas fa-chevron-up transition-transform"></i>
+                        </button>
+                    </div>
+                    <div id="body-age" class="px-5 pb-5 relative h-60 flex justify-center w-full transition-all">
+                        <canvas id="chartAge"></canvas>
+                    </div>
+                </div>
+
+                <!-- 5. กราฟสิ่งอำนวยความสะดวก -->
+                <div id="card-amenities" class="bg-white rounded-2xl shadow-sm flex flex-col transition-all overflow-hidden">
+                    <div class="p-5 flex items-center justify-between bg-white z-10">
+                        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fas fa-star text-slate-400"></i> สิ่งอำนวยความสะดวก
+                        </h3>
+                        <button onclick="toggleMinimize('body-amenities', 'icon-amenities')" class="text-slate-400 hover:text-slate-600 outline-none">
+                            <i id="icon-amenities" class="fas fa-chevron-up transition-transform"></i>
+                        </button>
+                    </div>
+                    <div id="body-amenities" class="px-5 pb-5 relative h-60 w-full transition-all">
+                        <canvas id="chartAmenities"></canvas>
+                    </div>
+                </div>
+
+                <!-- 6. กราฟขนาดห้อง -->
+                <div id="card-unitsize" class="bg-white rounded-2xl shadow-sm flex flex-col transition-all overflow-hidden">
+                    <div class="p-5 flex items-center justify-between bg-white z-10">
+                        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fas fa-ruler-combined text-slate-400"></i> ขนาดห้อง
+                        </h3>
+                        <button onclick="toggleMinimize('body-unitsize', 'icon-unitsize')" class="text-slate-400 hover:text-slate-600 outline-none">
+                            <i id="icon-unitsize" class="fas fa-chevron-up transition-transform"></i>
+                        </button>
+                    </div>
+                    <div id="body-unitsize" class="px-5 pb-5 relative h-60 flex justify-center w-full transition-all">
+                        <canvas id="chartUnitSize"></canvas>
+                    </div>
+                </div>
+
+                <!-- 7. กราฟ Ratings -->
+                <div id="card-ratings" class="bg-white rounded-2xl shadow-sm flex flex-col transition-all overflow-hidden">
+                    <div class="p-5 flex items-center justify-between bg-white z-10">
+                        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fas fa-star-half-alt text-slate-400"></i> คะแนนความพึงพอใจ
+                        </h3>
+                        <button onclick="toggleMinimize('body-ratings', 'icon-ratings')" class="text-slate-400 hover:text-slate-600 outline-none">
+                            <i id="icon-ratings" class="fas fa-chevron-up transition-transform"></i>
+                        </button>
+                    </div>
+                    <div id="body-ratings" class="px-5 pb-5 relative h-60 flex justify-center w-full transition-all">
+                        <canvas id="chartRatings"></canvas>
+                    </div>
+                </div>
+
+                <!-- 8. กราฟแหล่งเงินทุน -->
+                <div id="card-funding" class="bg-white rounded-2xl shadow-sm flex flex-col transition-all overflow-hidden">
+                    <div class="p-5 flex items-center justify-between bg-white z-10">
+                        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fas fa-piggy-bank text-slate-400"></i> แหล่งเงินทุน
+                        </h3>
+                        <button onclick="toggleMinimize('body-funding', 'icon-funding')" class="text-slate-400 hover:text-slate-600 outline-none">
+                            <i id="icon-funding" class="fas fa-chevron-up transition-transform"></i>
+                        </button>
+                    </div>
+                    <div id="body-funding" class="px-5 pb-5 relative h-60 flex justify-center w-full transition-all">
+                        <canvas id="chartFunding"></canvas>
+                    </div>
+                </div>
+
+                <!-- 9. กราฟสถานะสินเชื่อ -->
+                <div id="card-mortgage" class="bg-white rounded-2xl shadow-sm flex flex-col transition-all overflow-hidden">
+                    <div class="p-5 flex items-center justify-between bg-white z-10">
+                        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fas fa-file-signature text-slate-400"></i> สถานะอนุมัติสินเชื่อ
+                        </h3>
+                        <button onclick="toggleMinimize('body-mortgage', 'icon-mortgage')" class="text-slate-400 hover:text-slate-600 outline-none">
+                            <i id="icon-mortgage" class="fas fa-chevron-up transition-transform"></i>
+                        </button>
+                    </div>
+                    <div id="body-mortgage" class="px-5 pb-5 relative h-60 flex justify-center w-full transition-all">
+                        <canvas id="chartMortgage"></canvas>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Javascript Logic ================= -->
+    <script>
+        const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#f97316', '#ec4899', '#14b8a6', '#84cc16'];
+        
+        let rawData = [];
+        let chartInstances = {};
+
+        // ฟังก์ชันซ่อน/แสดง เมนูเลือกกราฟ
+        function toggleChartMenu() {
+            document.getElementById('chart-selector-menu').classList.toggle('hidden');
+        }
+
+        // ปิดเมนูเลือกกราฟเวลาคลิกที่อื่น
+        window.addEventListener('click', function(e) {
+            const menu = document.getElementById('chart-selector-menu');
+            const btn = menu.previousElementSibling;
+            if (!menu.contains(e.target) && !btn.contains(e.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+
+        // ฟังก์ชันพับเก็บ/ขยาย กราฟ (Minimize toggle)
+        function toggleMinimize(bodyId, iconId) {
+            const body = document.getElementById(bodyId);
+            const icon = document.getElementById(iconId);
+            
+            if (body.classList.contains('hidden')) {
+                body.classList.remove('hidden');
+                icon.style.transform = "rotate(0deg)"; // ลูกศรชี้ขึ้น
+            } else {
+                body.classList.add('hidden');
+                icon.style.transform = "rotate(180deg)"; // ลูกศรชี้ลง
+            }
+        }
+
+        // ฟังก์ชันปิด/เปิด กราฟทั้งกล่อง (Checkbox Menu)
+        function toggleCard(cardId, checkbox) {
+            const card = document.getElementById(cardId);
+            if (checkbox.checked) {
+                card.style.display = "flex";
+            } else {
+                card.style.display = "none";
+            }
+        }
+
+        // 1. เช็คว่ามีข้อมูล DEFAULT_JSON_DATA หรือ DEFAULT_CSV_DATA จากไฟล์ data.js ถูกโหลดเข้ามาหรือไม่
+        document.addEventListener('DOMContentLoaded', () => {
+            const btnDefault = document.getElementById('btn-default-data');
+            const statusText = document.getElementById('data-status-text');
+
+            // รองรับแบบ JSON Array (ไฟล์ที่คุณเตรียมไว้)
+            if (typeof DEFAULT_JSON_DATA !== 'undefined' && Array.isArray(DEFAULT_JSON_DATA)) {
+                btnDefault.classList.remove('hidden');
+                if(statusText) statusText.classList.remove('hidden');
+                
+                btnDefault.addEventListener('click', () => {
+                    // แปลงค่าตัวเลขที่ติดมาเป็น String ใน JSON ให้กลายเป็น Number เผื่อความชัวร์ในการคำนวณ
+                    rawData = DEFAULT_JSON_DATA.map(item => {
+                        let parsed = {};
+                        for (let key in item) {
+                            let val = item[key];
+                            if (typeof val === 'string' && !isNaN(val) && val.trim() !== '') {
+                                parsed[key] = Number(val);
+                            } else {
+                                parsed[key] = val;
+                            }
+                        }
+                        return parsed;
+                    });
+                    startDashboard("Case Study (Condo 1000 Data)");
+                });
+            } 
+            // เผื่อไว้รองรับแบบ CSV String แบบเก่า
+            else if (typeof DEFAULT_CSV_DATA !== 'undefined' && DEFAULT_CSV_DATA.trim() !== '') {
+                btnDefault.classList.remove('hidden');
+                if(statusText) statusText.classList.remove('hidden');
+                
+                btnDefault.addEventListener('click', () => {
+                    rawData = parseCSV(DEFAULT_CSV_DATA);
+                    startDashboard("Case Study (Condo 1000 Data)");
+                });
+            }
+        });
+
+        const formatNumber = (num) => new Intl.NumberFormat('th-TH').format(Math.round(num));
+
+        function parseCSV(csvText) {
+            const lines = csvText.split(/\r?\n/);
+            if (lines.length < 2) return [];
+
+            const headers = lines[0].split(',').map(h => h.trim());
+            const result = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                
+                const currentline = [];
+                let currentVal = '';
+                let inQuotes = false;
+                
+                for (let char of lines[i]) {
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        currentline.push(currentVal);
+                        currentVal = '';
+                    } else {
+                        currentVal += char;
+                    }
+                }
+                currentline.push(currentVal); 
+                
+                const obj = {};
+                for (let j = 0; j < headers.length; j++) {
+                    let val = currentline[j] ? currentline[j].trim() : '';
+                    if (!isNaN(val) && val !== '') val = Number(val);
+                    obj[headers[j]] = val;
+                }
+                result.push(obj);
+            }
+            return result;
+        }
+
+        function populateDropdown(id, data, key) {
+            const select = document.getElementById(id);
+            if (!select) return;
+            const uniqueValues = [...new Set(data.map(item => item[key]).filter(v => v !== undefined && v !== ''))].sort();
+            
+            select.innerHTML = '<option value="All">ทั้งหมด</option>';
+            uniqueValues.forEach(val => {
+                select.innerHTML += `<option value="${val}">${val}</option>`;
+            });
+        }
+
+        document.getElementById('csv-file-input').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    rawData = parseCSV(event.target.result);
+                    startDashboard(file.name);
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        ['filter-buyer', 'filter-purpose', 'filter-condo', 'filter-nationality', 'filter-age', 'filter-gender', 'filter-funding'].forEach(id => {
+            document.getElementById(id).addEventListener('change', updateDashboard);
+        });
+
+        function startDashboard(filename) {
+            document.getElementById('upload-screen').classList.add('hidden');
+            document.getElementById('dashboard-screen').classList.remove('hidden');
+            document.getElementById('display-filename').innerText = filename;
+            
+            populateDropdown('filter-nationality', rawData, 'nationality');
+            populateDropdown('filter-gender', rawData, 'gender');
+            populateDropdown('filter-funding', rawData, 'funding_source');
+            
+            updateDashboard();
+        }
+
+        function updateDashboard() {
+            const bFilter = document.getElementById('filter-buyer').value;
+            const pFilter = document.getElementById('filter-purpose').value;
+            const cFilter = document.getElementById('filter-condo').value;
+            const nFilter = document.getElementById('filter-nationality').value;
+            const aFilter = document.getElementById('filter-age').value;
+            const gFilter = document.getElementById('filter-gender').value;
+            const fFilter = document.getElementById('filter-funding').value;
+
+            const filteredData = rawData.filter(item => {
+                if (bFilter !== 'All' && item.buyer_type !== bFilter) return false;
+                if (pFilter !== 'All' && item.purchase_purpose !== pFilter) return false;
+                if (cFilter !== 'All' && item.target_condo_type !== cFilter) return false;
+                if (nFilter !== 'All' && item.nationality !== nFilter) return false;
+                if (gFilter !== 'All' && item.gender !== gFilter) return false;
+                if (fFilter !== 'All' && item.funding_source !== fFilter) return false;
+                
+                if (aFilter !== 'All' && item.age) {
+                    const age = Number(item.age);
+                    if (aFilter === '<30' && age >= 30) return false;
+                    if (aFilter === '30-39' && (age < 30 || age > 39)) return false;
+                    if (aFilter === '40-49' && (age < 40 || age > 49)) return false;
+                    if (aFilter === '50+' && age < 50) return false;
+                }
+                
+                return true;
+            });
+
+            const total = filteredData.length;
+            const avgBudget = total > 0 ? filteredData.reduce((acc, curr) => acc + (curr.budget_thb || 0), 0) / total : 0;
+            const avgIncome = total > 0 ? filteredData.reduce((acc, curr) => acc + (curr.monthly_income_thb || 0), 0) / total : 0;
+            const avgYield = total > 0 ? filteredData.reduce((acc, curr) => acc + (curr.expected_rental_yield_pct || 0), 0) / total : 0;
+            
+            const locationCounts = {};
+            filteredData.forEach(item => {
+                if (item.target_location) locationCounts[item.target_location] = (locationCounts[item.target_location] || 0) + 1;
+            });
+            let topLoc = '-';
+            let maxCount = 0;
+            Object.entries(locationCounts).forEach(([loc, count]) => {
+                if (count > maxCount) { maxCount = count; topLoc = loc; }
+            });
+
+            document.getElementById('kpi-total').innerText = formatNumber(total);
+            document.getElementById('kpi-budget').innerText = formatNumber(avgBudget);
+            document.getElementById('kpi-income').innerText = formatNumber(avgIncome);
+            document.getElementById('kpi-location').innerText = topLoc;
+            document.getElementById('kpi-location').title = topLoc;
+            document.getElementById('kpi-yield').innerText = (avgYield * 100).toFixed(2) + '%';
+
+            renderCharts(filteredData);
+        }
+
+        function getGroupedData(data, key) {
+            const counts = {};
+            data.forEach(item => {
+                if (item[key]) counts[item[key]] = (counts[item[key]] || 0) + 1;
+            });
+            return Object.entries(counts).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
+        }
+
+        function renderCharts(data) {
+            const locationData = getGroupedData(data, 'target_location');
+            const purposeData = getGroupedData(data, 'purchase_purpose');
+            const condoData = getGroupedData(data, 'target_condo_type');
+            const amenityData = getGroupedData(data, 'amenity_priority');
+            const fundingData = getGroupedData(data, 'funding_source');
+            const mortgageData = getGroupedData(data, 'mortgage_approval_status');
+
+            const ratingKeys = {
+                'rating_location_accessibility': 'ทำเล/เข้าถึง',
+                'rating_price_affordability': 'ราคา/คุ้มค่า',
+                'rating_amenities_facilities': 'ส่วนกลาง',
+                'rating_building_quality_design': 'คุณภาพ/ดีไซน์',
+                'rating_transport_connectivity': 'การเดินทาง',
+                'rating_legal_ownership': 'กรรมสิทธิ์',
+                'rating_resale_investment': 'ขายต่อ',
+                'rating_neighborhood_character': 'สภาพแวดล้อม',
+                'rating_developer_reputation': 'ชื่อเสียงนักพัฒนา',
+                'rating_market_trends': 'เทรนด์ตลาด'
+            };
+
+            const ratingAverages = Object.keys(ratingKeys).map(key => {
+                let sum = 0, count = 0;
+                data.forEach(item => {
+                    const val = Number(item[key]);
+                    if (!isNaN(val) && val > 0) {
+                        sum += val;
+                        count++;
+                    }
+                });
+                return {
+                    label: ratingKeys[key],
+                    avg: count > 0 ? (sum / count).toFixed(2) : 0
+                };
+            });
+
+            const ageDataObj = { '<30': 0, '30-39': 0, '40-49': 0, '50+': 0 };
+            data.forEach(item => {
+                if (item.age) {
+                    const age = Number(item.age);
+                    if (age < 30) ageDataObj['<30']++;
+                    else if (age <= 39) ageDataObj['30-39']++;
+                    else if (age <= 49) ageDataObj['40-49']++;
+                    else ageDataObj['50+']++;
+                }
+            });
+            const ageArray = Object.keys(ageDataObj).map(key => ({ name: key, count: ageDataObj[key] }));
+
+            const unitSizeData = {};
+            data.forEach(item => {
+                const sqm = item.desired_unit_size_sqm;
+                if (sqm) {
+                    let range = '';
+                    if (sqm < 30) range = '< 30 ตร.ม.';
+                    else if (sqm <= 50) range = '30-50 ตร.ม.';
+                    else if (sqm <= 80) range = '51-80 ตร.ม.';
+                    else if (sqm <= 100) range = '81-100 ตร.ม.';
+                    else range = '> 100 ตร.ม.';
+                    unitSizeData[range] = (unitSizeData[range] || 0) + 1;
+                }
+            });
+            
+            const sizeOrder = ['< 30 ตร.ม.', '30-50 ตร.ม.', '51-80 ตร.ม.', '81-100 ตร.ม.', '> 100 ตร.ม.'];
+            const unitSizeArray = sizeOrder.map(range => ({ name: range, count: unitSizeData[range] || 0 })).filter(d => d.count > 0);
+
+            createChart('chartLocation', 'bar', {
+                labels: locationData.map(d => d.name),
+                datasets: [{
+                    label: 'จำนวน (ราย)',
+                    data: locationData.map(d => d.count),
+                    backgroundColor: COLORS,
+                    borderRadius: 4
+                }]
+            }, { 
+                indexAxis: 'y', 
+                plugins: { legend: { display: false } },
+                maintainAspectRatio: false
+            });
+
+            createChart('chartPurpose', 'doughnut', {
+                labels: purposeData.map(d => d.name),
+                datasets: [{
+                    data: purposeData.map(d => d.count),
+                    backgroundColor: ['#10b981', '#f59e0b', '#3b82f6', '#ef4444'],
+                }]
+            }, { maintainAspectRatio: false });
+
+            createChart('chartCondoType', 'pie', {
+                labels: condoData.map(d => d.name),
+                datasets: [{
+                    data: condoData.map(d => d.count),
+                    backgroundColor: COLORS.slice(2).concat(COLORS.slice(0, 2)),
+                }]
+            }, { maintainAspectRatio: false });
+
+            createChart('chartAge', 'bar', {
+                labels: ageArray.map(d => d.name),
+                datasets: [{
+                    label: 'จำนวน (ราย)',
+                    data: ageArray.map(d => d.count),
+                    backgroundColor: '#ec4899',
+                    borderRadius: 4
+                }]
+            }, { plugins: { legend: { display: false } } });
+
+            createChart('chartAmenities', 'bar', {
+                labels: amenityData.map(d => d.name),
+                datasets: [{
+                    label: 'จำนวน (ราย)',
+                    data: amenityData.map(d => d.count),
+                    backgroundColor: '#8b5cf6',
+                    borderRadius: 4
+                }]
+            }, { plugins: { legend: { display: false } } });
+
+            createChart('chartUnitSize', 'bar', {
+                labels: unitSizeArray.map(d => d.name),
+                datasets: [{
+                    label: 'จำนวน (ราย)',
+                    data: unitSizeArray.map(d => d.count),
+                    backgroundColor: '#14b8a6',
+                    borderRadius: 4
+                }]
+            }, { plugins: { legend: { display: false } } });
+
+            createChart('chartFunding', 'pie', {
+                labels: fundingData.map(d => d.name),
+                datasets: [{
+                    data: fundingData.map(d => d.count),
+                    backgroundColor: ['#f43f5e', '#8b5cf6', '#0ea5e9', '#10b981', '#f59e0b'],
+                }]
+            }, { maintainAspectRatio: false });
+
+            const mortgageColors = mortgageData.map(d => {
+                if(d.name.includes('Approved')) return '#10b981';
+                if(d.name.includes('Rejected')) return '#ef4444';
+                if(d.name.includes('N/A')) return '#9ca3af';
+                return '#f59e0b';
+            });
+
+            createChart('chartMortgage', 'doughnut', {
+                labels: mortgageData.map(d => d.name),
+                datasets: [{
+                    data: mortgageData.map(d => d.count),
+                    backgroundColor: mortgageColors,
+                }]
+            }, { maintainAspectRatio: false });
+
+            createChart('chartRatings', 'radar', {
+                labels: ratingAverages.map(d => d.label),
+                datasets: [{
+                    label: 'คะแนนเฉลี่ย',
+                    data: ratingAverages.map(d => d.avg),
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    borderColor: '#3b82f6',
+                    pointBackgroundColor: '#3b82f6',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: '#3b82f6'
+                }]
+            }, {
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                        grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                        pointLabels: {
+                            font: { size: 10, family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" },
+                            color: '#475569'
+                        },
+                        ticks: {
+                            min: 0, max: 5, stepSize: 1, backdropColor: 'transparent'
+                        }
+                    }
+                },
+                plugins: { legend: { display: false } }
+            });
+        }
+
+        function createChart(canvasId, type, data, extraOptions = {}) {
+            if (chartInstances[canvasId]) {
+                chartInstances[canvasId].destroy();
+            }
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            chartInstances[canvasId] = new Chart(ctx, {
+                type: type,
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: extraOptions.maintainAspectRatio !== false,
+                    ...extraOptions
+                }
+            });
+        }
+    </script>
+</body>
+</html>
