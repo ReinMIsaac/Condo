@@ -23,34 +23,20 @@
 </head>
 <body class="bg-slate-100 min-h-screen font-sans">
 
-    <!-- ================= หน้าจออัปโหลดไฟล์ ================= -->
+    <!-- ================= หน้าจออัปโหลดไฟล์ (Landing Page) ================= -->
     <div id="upload-screen" class="min-h-screen flex items-center justify-center p-4">
-        <div class="bg-white p-8 rounded-2xl shadow-xl max-w-lg w-full text-center">
-            <div class="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <i class="fas fa-cloud-upload-alt text-blue-600 text-4xl"></i>
+        <div class="bg-white p-10 rounded-2xl shadow-xl max-w-md w-full text-center">
+            <div class="bg-blue-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-building text-blue-600 text-5xl"></i>
             </div>
-            <h1 class="text-2xl font-bold text-slate-800 mb-2">อัปโหลดไฟล์ข้อมูลของคุณ</h1>
-            <p class="text-slate-500 mb-6">กรุณาเลือกไฟล์ <span class="font-semibold text-slate-700">condo_buyers_1000...csv</span></p>
-            
-            <div class="mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200 text-sm">
-                <p class="text-slate-600 mb-2"><i class="fas fa-info-circle text-blue-500 mr-1"></i> หากยังไม่มีไฟล์ข้อมูล สามารถดาวน์โหลดได้ที่นี่</p>
-                <a href="https://drive.google.com/file/d/1DYPqK2MxFhJdYfQ3SIg0_QPx5X_bxV4Y/view?usp=sharing" target="_blank" class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-semibold hover:underline transition-colors">
-                    <i class="fas fa-download"></i> โหลดไฟล์ Condo CSV (ชั่วคราว)
-                </a>
-            </div>
+            <h1 class="text-2xl font-bold text-slate-800 mb-3">Condo Buyers Dashboard</h1>
+            <p class="text-slate-500 mb-8">ระบบวิเคราะห์ข้อมูลพฤติกรรมผู้ซื้อคอนโด</p>
 
             <!-- ปุ่ม Case Study (จะแสดงผลก็ต่อเมื่อมีไฟล์ data.js อยู่ในโฟลเดอร์เดียวกัน) -->
-            <button id="btn-default-data" class="hidden w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-xl transition-colors mb-4 shadow-md flex items-center justify-center gap-3 text-lg">
-                <i class="fas fa-chart-pie"></i> ดูข้อมูล Case Study (Condo 1000 Data)
+            <button id="btn-default-data" class="hidden w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-xl transition-colors shadow-md flex items-center justify-center gap-3 text-lg">
+                <i class="fas fa-chart-pie text-xl"></i> ดูข้อมูล Case Study (1000 Data)
             </button>
-            <p id="data-status-text" class="text-sm text-emerald-600 font-medium mb-4 hidden"><i class="fas fa-check-circle"></i> ตรวจพบไฟล์ข้อมูล data.js แล้ว พร้อมใช้งาน!</p>
-
-            <!-- ปุ่มอัปโหลด -->
-            <label class="block w-full cursor-pointer bg-slate-50 border border-slate-300 hover:bg-slate-100 transition-colors rounded-xl p-4 text-slate-600 font-medium mb-4">
-                <input type="file" id="csv-file-input" accept=".csv" class="hidden" />
-                <i class="fas fa-upload mr-2"></i> อัปโหลดไฟล์ CSV ใหม่
-            </label>
-            
+            <p id="data-status-text" class="text-sm text-red-500 font-medium mt-4 hidden"><i class="fas fa-exclamation-triangle"></i> ไม่พบไฟล์ข้อมูล (data.js)</p>
         </div>
     </div>
 
@@ -63,11 +49,11 @@
                 <div>
                     <h1 class="text-2xl md:text-3xl font-bold text-slate-800">แดชบอร์ดวิเคราะห์พฤติกรรมผู้ซื้อคอนโด</h1>
                     <p class="text-slate-500 mt-1 flex items-center gap-2">
-                        <i class="fas fa-file-csv"></i> แหล่งข้อมูล: <span id="display-filename" class="font-medium text-slate-700"></span>
+                        <i class="fas fa-database"></i> แหล่งข้อมูล: <span id="display-filename" class="font-medium text-slate-700"></span>
                     </p>
                 </div>
                 <button onclick="window.location.reload()" class="mt-4 md:mt-0 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium">
-                    อัปโหลดไฟล์ใหม่
+                    <i class="fas fa-home"></i> กลับหน้าแรก
                 </button>
             </div>
 
@@ -444,7 +430,6 @@
             // รองรับแบบ JSON Array (ไฟล์ที่คุณเตรียมไว้)
             if (typeof DEFAULT_JSON_DATA !== 'undefined' && Array.isArray(DEFAULT_JSON_DATA)) {
                 btnDefault.classList.remove('hidden');
-                if(statusText) statusText.classList.remove('hidden');
                 
                 btnDefault.addEventListener('click', () => {
                     // แปลงค่าตัวเลขที่ติดมาเป็น String ใน JSON ให้กลายเป็น Number เผื่อความชัวร์ในการคำนวณ
@@ -466,12 +451,14 @@
             // เผื่อไว้รองรับแบบ CSV String แบบเก่า
             else if (typeof DEFAULT_CSV_DATA !== 'undefined' && DEFAULT_CSV_DATA.trim() !== '') {
                 btnDefault.classList.remove('hidden');
-                if(statusText) statusText.classList.remove('hidden');
                 
                 btnDefault.addEventListener('click', () => {
                     rawData = parseCSV(DEFAULT_CSV_DATA);
                     startDashboard("Case Study (Condo 1000 Data)");
                 });
+            } else {
+                // หากไม่พบไฟล์ data.js ให้แสดงข้อความแจ้งเตือนสีแดง
+                if(statusText) statusText.classList.remove('hidden');
             }
         });
 
@@ -524,18 +511,6 @@
                 select.innerHTML += `<option value="${val}">${val}</option>`;
             });
         }
-
-        document.getElementById('csv-file-input').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    rawData = parseCSV(event.target.result);
-                    startDashboard(file.name);
-                };
-                reader.readAsText(file);
-            }
-        });
 
         ['filter-buyer', 'filter-purpose', 'filter-condo', 'filter-nationality', 'filter-age', 'filter-gender', 'filter-funding'].forEach(id => {
             document.getElementById(id).addEventListener('change', updateDashboard);
