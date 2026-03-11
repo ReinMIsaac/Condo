@@ -44,7 +44,7 @@
     <div id="dashboard-screen" class="hidden p-4 md:p-8">
         <div class="max-w-7xl mx-auto space-y-6">
             
-            <!-- Header -->
+            <!-- Header (ย้ายปุ่ม Metadata มาไว้ที่นี่) -->
             <div class="flex flex-col md:flex-row md:items-center justify-between bg-white p-6 rounded-2xl shadow-sm">
                 <div>
                     <h1 class="text-2xl md:text-3xl font-bold text-slate-800">แดชบอร์ดวิเคราะห์พฤติกรรมผู้ซื้อคอนโด</h1>
@@ -52,9 +52,18 @@
                         <i class="fas fa-database"></i> แหล่งข้อมูล: <span id="display-filename" class="font-medium text-slate-700"></span>
                     </p>
                 </div>
-                <button onclick="window.location.reload()" class="mt-4 md:mt-0 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium">
-                    <i class="fas fa-home"></i> กลับหน้าแรก
-                </button>
+                <!-- ปุ่มด้านขวาบน -->
+                <div class="mt-4 md:mt-0 flex flex-wrap items-center gap-3">
+                    <button onclick="openOutlierData()" class="bg-red-50 border border-red-200 text-red-600 px-4 py-2 rounded-lg shadow-sm hover:bg-red-100 transition-colors text-sm font-medium flex items-center gap-2">
+                        <i class="fas fa-exclamation-triangle"></i> ข้อมูล Outlier
+                    </button>
+                    <button onclick="openMetadata()" class="bg-indigo-50 border border-indigo-200 text-indigo-600 px-4 py-2 rounded-lg shadow-sm hover:bg-indigo-100 transition-colors text-sm font-medium flex items-center gap-2">
+                        <i class="fas fa-book"></i> พจนานุกรมตัวแปร (Metadata)
+                    </button>
+                    <button onclick="window.location.reload()" class="bg-slate-100 text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium flex items-center gap-2">
+                        <i class="fas fa-home"></i> กลับหน้าแรก
+                    </button>
+                </div>
             </div>
 
             <!-- Filters -->
@@ -63,7 +72,7 @@
                     <i class="fas fa-filter"></i>
                     <span>ตัวกรองข้อมูล (Filters)</span>
                 </div>
-                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
                     <div>
                         <label class="block text-xs font-medium text-slate-500 mb-1">ประเภทผู้ซื้อ</label>
                         <select id="filter-buyer" class="w-full bg-slate-50 border border-slate-200 text-slate-700 rounded-lg py-1.5 px-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
@@ -120,11 +129,19 @@
                             <option value="All">ทั้งหมด</option>
                         </select>
                     </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">สถานะข้อมูล (Outlier)</label>
+                        <select id="filter-outlier" class="w-full bg-red-50/50 border border-red-200 text-slate-700 rounded-lg py-1.5 px-2 text-sm outline-none focus:ring-2 focus:ring-red-500">
+                            <option value="All">ทั้งหมด (รวม Outlier)</option>
+                            <option value="0">ข้อมูลปกติ (Normal)</option>
+                            <option value="1">ข้อมูลผิดปกติ (Outlier)</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
             <!-- KPIs -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-blue-500">
                     <div class="flex items-center gap-4">
                         <div class="bg-blue-100 w-12 h-12 flex items-center justify-center rounded-xl text-blue-600">
@@ -180,13 +197,25 @@
                         </div>
                     </div>
                 </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-red-500">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-red-100 w-12 h-12 flex items-center justify-center rounded-xl text-red-600">
+                            <i class="fas fa-exclamation-triangle text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-slate-500">จำนวน Outlier</p>
+                            <h3 id="kpi-outliers" class="text-2xl font-bold text-slate-800">0</h3>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Chart Toolbar (เมนูเปิด-ปิดกราฟ) -->
+            <!-- Chart Toolbar (ปรับเมนูเปิด-ปิดกราฟ ให้กลับเป็นโครงสร้างเดิม) -->
             <div class="flex items-center justify-between mt-8 mb-2">
                 <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
                     <i class="fas fa-chart-pie text-slate-400"></i> สถิติและการวิเคราะห์
                 </h2>
+                
                 <div class="relative">
                     <button onclick="toggleChartMenu()" class="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg shadow-sm hover:bg-slate-50 transition-colors text-sm font-medium flex items-center gap-2">
                         <i class="fas fa-list-check"></i> เลือกกราฟที่แสดง <i class="fas fa-chevron-down text-xs ml-1"></i>
@@ -221,7 +250,7 @@
                             </label>
                             <label class="flex items-center space-x-3 cursor-pointer p-1 hover:bg-slate-50 rounded">
                                 <input type="checkbox" checked onchange="toggleCard('card-ratings', this)" class="w-4 h-4 rounded text-blue-500 focus:ring-blue-500">
-                                <span class="text-sm text-slate-700">คะแนนความพึงพอใจ</span>
+                                <span class="text-sm text-slate-700">ระดับความสำคัญของปัจจัย</span>
                             </label>
                             <label class="flex items-center space-x-3 cursor-pointer p-1 hover:bg-slate-50 rounded">
                                 <input type="checkbox" checked onchange="toggleCard('card-funding', this)" class="w-4 h-4 rounded text-blue-500 focus:ring-blue-500">
@@ -241,7 +270,7 @@
                 
                 <!-- 1. กราฟทำเล -->
                 <div id="card-location" class="bg-white rounded-2xl shadow-sm flex flex-col transition-all overflow-hidden">
-                    <div class="p-5 flex items-center justify-between bg-white z-10">
+                    <div class="p-5 pb-2 flex items-center justify-between bg-white z-10">
                         <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
                             <i class="fas fa-map-pin text-slate-400"></i> ทำเลที่ต้องการ
                         </h3>
@@ -249,6 +278,7 @@
                             <i id="icon-location" class="fas fa-chevron-up transition-transform"></i>
                         </button>
                     </div>
+                    <p class="px-5 text-[11px] text-slate-500 mb-2">ย่านหรือทำเลในกรุงเทพฯ ที่กลุ่มเป้าหมายสนใจจะซื้อ (Preferred neighborhood / corridor)</p>
                     <div id="body-location" class="px-5 pb-5 relative h-60 w-full transition-all">
                         <canvas id="chartLocation"></canvas>
                     </div>
@@ -256,7 +286,7 @@
 
                 <!-- 2. กราฟวัตถุประสงค์ -->
                 <div id="card-purpose" class="bg-white rounded-2xl shadow-sm flex flex-col transition-all overflow-hidden">
-                    <div class="p-5 flex items-center justify-between bg-white z-10">
+                    <div class="p-5 pb-2 flex items-center justify-between bg-white z-10">
                         <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
                             <i class="fas fa-bullseye text-slate-400"></i> วัตถุประสงค์
                         </h3>
@@ -264,6 +294,7 @@
                             <i id="icon-purpose" class="fas fa-chevron-up transition-transform"></i>
                         </button>
                     </div>
+                    <p class="px-5 text-[11px] text-slate-500 mb-2">วัตถุประสงค์ในการใช้งานคอนโด (Intended use of the condo)</p>
                     <div id="body-purpose" class="px-5 pb-5 relative h-60 flex justify-center w-full transition-all">
                         <canvas id="chartPurpose"></canvas>
                     </div>
@@ -271,7 +302,7 @@
 
                 <!-- 3. กราฟรูปแบบห้อง -->
                 <div id="card-condo" class="bg-white rounded-2xl shadow-sm flex flex-col transition-all overflow-hidden">
-                    <div class="p-5 flex items-center justify-between bg-white z-10">
+                    <div class="p-5 pb-2 flex items-center justify-between bg-white z-10">
                         <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
                             <i class="fas fa-building text-slate-400"></i> รูปแบบห้อง
                         </h3>
@@ -279,6 +310,7 @@
                             <i id="icon-condo" class="fas fa-chevron-up transition-transform"></i>
                         </button>
                     </div>
+                    <p class="px-5 text-[11px] text-slate-500 mb-2">รูปแบบและการจัดวางผังห้องที่ต้องการ (Desired unit configuration)</p>
                     <div id="body-condo" class="px-5 pb-5 relative h-60 flex justify-center w-full transition-all">
                         <canvas id="chartCondoType"></canvas>
                     </div>
@@ -286,7 +318,7 @@
 
                 <!-- 4. กราฟช่วงอายุ -->
                 <div id="card-age" class="bg-white rounded-2xl shadow-sm flex flex-col transition-all overflow-hidden">
-                    <div class="p-5 flex items-center justify-between bg-white z-10">
+                    <div class="p-5 pb-2 flex items-center justify-between bg-white z-10">
                         <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
                             <i class="fas fa-user-clock text-slate-400"></i> ช่วงอายุ
                         </h3>
@@ -294,6 +326,7 @@
                             <i id="icon-age" class="fas fa-chevron-up transition-transform"></i>
                         </button>
                     </div>
+                    <p class="px-5 text-[11px] text-slate-500 mb-2">อายุของผู้ซื้อ ณ เวลาที่สอบถามหรือตัดสินใจซื้อ (Buyer's age at time of enquiry)</p>
                     <div id="body-age" class="px-5 pb-5 relative h-60 flex justify-center w-full transition-all">
                         <canvas id="chartAge"></canvas>
                     </div>
@@ -301,7 +334,7 @@
 
                 <!-- 5. กราฟสิ่งอำนวยความสะดวก -->
                 <div id="card-amenities" class="bg-white rounded-2xl shadow-sm flex flex-col transition-all overflow-hidden">
-                    <div class="p-5 flex items-center justify-between bg-white z-10">
+                    <div class="p-5 pb-2 flex items-center justify-between bg-white z-10">
                         <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
                             <i class="fas fa-star text-slate-400"></i> สิ่งอำนวยความสะดวก
                         </h3>
@@ -309,6 +342,7 @@
                             <i id="icon-amenities" class="fas fa-chevron-up transition-transform"></i>
                         </button>
                     </div>
+                    <p class="px-5 text-[11px] text-slate-500 mb-2">พื้นที่ส่วนกลางที่ให้ความสำคัญมากที่สุด 1 อย่าง (Single most-valued shared facility)</p>
                     <div id="body-amenities" class="px-5 pb-5 relative h-60 w-full transition-all">
                         <canvas id="chartAmenities"></canvas>
                     </div>
@@ -316,7 +350,7 @@
 
                 <!-- 6. กราฟขนาดห้อง -->
                 <div id="card-unitsize" class="bg-white rounded-2xl shadow-sm flex flex-col transition-all overflow-hidden">
-                    <div class="p-5 flex items-center justify-between bg-white z-10">
+                    <div class="p-5 pb-2 flex items-center justify-between bg-white z-10">
                         <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
                             <i class="fas fa-ruler-combined text-slate-400"></i> ขนาดห้อง
                         </h3>
@@ -324,29 +358,41 @@
                             <i id="icon-unitsize" class="fas fa-chevron-up transition-transform"></i>
                         </button>
                     </div>
+                    <p class="px-5 text-[11px] text-slate-500 mb-2">เป้าหมายขนาดพื้นที่ใช้สอยภายในห้อง (Target internal floor area)</p>
                     <div id="body-unitsize" class="px-5 pb-5 relative h-60 flex justify-center w-full transition-all">
                         <canvas id="chartUnitSize"></canvas>
                     </div>
                 </div>
 
-                <!-- 7. กราฟ Ratings -->
+                <!-- 7. กราฟ Ratings (Priority) -->
                 <div id="card-ratings" class="bg-white rounded-2xl shadow-sm flex flex-col transition-all overflow-hidden">
-                    <div class="p-5 flex items-center justify-between bg-white z-10">
+                    <div class="p-5 pb-2 flex items-center justify-between bg-white z-10">
                         <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                            <i class="fas fa-star-half-alt text-slate-400"></i> คะแนนความพึงพอใจ
+                            <i class="fas fa-list-ol text-slate-400"></i> ระดับความสำคัญของปัจจัย
                         </h3>
                         <button onclick="toggleMinimize('body-ratings', 'icon-ratings')" class="text-slate-400 hover:text-slate-600 outline-none">
                             <i id="icon-ratings" class="fas fa-chevron-up transition-transform"></i>
                         </button>
                     </div>
-                    <div id="body-ratings" class="px-5 pb-5 relative h-60 flex justify-center w-full transition-all">
-                        <canvas id="chartRatings"></canvas>
+                    <p class="px-5 text-[11px] text-slate-500 mb-2">ค่าน้ำหนักที่ส่งผลต่อการตัดสินใจซื้อในแต่ละด้าน (1-5)</p>
+                    <div id="body-ratings" class="px-5 pb-5 flex flex-col items-center w-full transition-all">
+                        <div class="text-[11px] text-slate-500 bg-blue-50/50 px-3 py-2 rounded-lg mb-2 w-full border border-blue-100">
+                            <p class="font-medium text-blue-800 mb-1 flex items-center justify-center gap-1">
+                                <i class="fas fa-info-circle"></i> ระดับคะแนน: 1 (ไม่ให้ความสำคัญ) ถึง 5 (Critical)
+                            </p>
+                            <p class="text-[10px] text-slate-500 text-center">
+                                * นำเมาส์ชี้ที่จุดมุมกราฟแต่ละด้าน เพื่อดูคำอธิบายของปัจจัยนั้นๆ
+                            </p>
+                        </div>
+                        <div class="relative h-52 flex justify-center w-full">
+                            <canvas id="chartRatings"></canvas>
+                        </div>
                     </div>
                 </div>
 
                 <!-- 8. กราฟแหล่งเงินทุน -->
                 <div id="card-funding" class="bg-white rounded-2xl shadow-sm flex flex-col transition-all overflow-hidden">
-                    <div class="p-5 flex items-center justify-between bg-white z-10">
+                    <div class="p-5 pb-2 flex items-center justify-between bg-white z-10">
                         <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
                             <i class="fas fa-piggy-bank text-slate-400"></i> แหล่งเงินทุน
                         </h3>
@@ -354,6 +400,7 @@
                             <i id="icon-funding" class="fas fa-chevron-up transition-transform"></i>
                         </button>
                     </div>
+                    <p class="px-5 text-[11px] text-slate-500 mb-2">วิธีการหลักในการจัดหาเงินทุนเพื่อซื้อ (Primary method of financing)</p>
                     <div id="body-funding" class="px-5 pb-5 relative h-60 flex justify-center w-full transition-all">
                         <canvas id="chartFunding"></canvas>
                     </div>
@@ -361,7 +408,7 @@
 
                 <!-- 9. กราฟสถานะสินเชื่อ -->
                 <div id="card-mortgage" class="bg-white rounded-2xl shadow-sm flex flex-col transition-all overflow-hidden">
-                    <div class="p-5 flex items-center justify-between bg-white z-10">
+                    <div class="p-5 pb-2 flex items-center justify-between bg-white z-10">
                         <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
                             <i class="fas fa-file-signature text-slate-400"></i> สถานะอนุมัติสินเชื่อ
                         </h3>
@@ -369,11 +416,88 @@
                             <i id="icon-mortgage" class="fas fa-chevron-up transition-transform"></i>
                         </button>
                     </div>
+                    <p class="px-5 text-[11px] text-slate-500 mb-2">ผลการอนุมัติสินเชื่อจากธนาคารไทย (Outcome of Thai bank mortgage)</p>
                     <div id="body-mortgage" class="px-5 pb-5 relative h-60 flex justify-center w-full transition-all">
                         <canvas id="chartMortgage"></canvas>
                     </div>
                 </div>
 
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Metadata Modal ================= -->
+    <div id="metadata-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden p-4 transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
+                <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fas fa-book text-indigo-500"></i> พจนานุกรมข้อมูล (Metadata Dictionary)
+                </h2>
+                <button onclick="closeMetadata()" class="text-slate-400 hover:text-slate-600 bg-white hover:bg-slate-100 rounded-full w-8 h-8 flex items-center justify-center transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <!-- Modal Body (Scrollable) -->
+            <div class="p-6 overflow-y-auto">
+                <table class="w-full text-left text-sm text-slate-600 border-collapse">
+                    <thead class="bg-slate-100 text-slate-700">
+                        <tr>
+                            <th class="p-3 border border-slate-200 font-semibold w-1/4">ตัวแปร (Column)</th>
+                            <th class="p-3 border border-slate-200 font-semibold w-1/6">ชนิดข้อมูล (Type)</th>
+                            <th class="p-3 border border-slate-200 font-semibold w-1/3">คำอธิบาย (Description)</th>
+                            <th class="p-3 border border-slate-200 font-semibold w-1/4">ค่าที่เป็นไปได้ (Typical Range)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="p-3 border border-slate-200 font-medium text-slate-800">buyer_id</td><td class="p-3 border border-slate-200">int</td><td class="p-3 border border-slate-200">Unique sequential identifier for each simulated buyer profile.</td><td class="p-3 border border-slate-200">1 – 1,000</td></tr>
+                        <tr class="bg-slate-50"><td class="p-3 border border-slate-200 font-medium text-slate-800">buyer_type</td><td class="p-3 border border-slate-200">category</td><td class="p-3 border border-slate-200">Buyer’s residency status.</td><td class="p-3 border border-slate-200">"Local" (Thai nationals) or "Foreign"</td></tr>
+                        <tr><td class="p-3 border border-slate-200 font-medium text-slate-800">nationality</td><td class="p-3 border border-slate-200">category</td><td class="p-3 border border-slate-200">Country of citizenship.</td><td class="p-3 border border-slate-200">"Thai", "China", "Myanmar", "USA", …</td></tr>
+                        <tr class="bg-slate-50"><td class="p-3 border border-slate-200 font-medium text-slate-800">age</td><td class="p-3 border border-slate-200">int (years)</td><td class="p-3 border border-slate-200">Buyer’s age at time of enquiry / purchase.</td><td class="p-3 border border-slate-200">buyer age</td></tr>
+                        <tr><td class="p-3 border border-slate-200 font-medium text-slate-800">gender</td><td class="p-3 border border-slate-200">category</td><td class="p-3 border border-slate-200">Self‑identified gender.</td><td class="p-3 border border-slate-200">"Male" or "Female"</td></tr>
+                        <tr class="bg-slate-50"><td class="p-3 border border-slate-200 font-medium text-slate-800">monthly_income_thb</td><td class="p-3 border border-slate-200">int (THB)</td><td class="p-3 border border-slate-200">Estimated gross monthly income in Thai Baht.</td><td class="p-3 border border-slate-200">gross monthly income</td></tr>
+                        <tr><td class="p-3 border border-slate-200 font-medium text-slate-800">funding_source</td><td class="p-3 border border-slate-200">category</td><td class="p-3 border border-slate-200">Primary method of financing the condo purchase.</td><td class="p-3 border border-slate-200">"Bank Loan", "Cash + Loan", "Cash", "Offshore Loan"</td></tr>
+                        <tr class="bg-slate-50"><td class="p-3 border border-slate-200 font-medium text-slate-800">purchase_purpose</td><td class="p-3 border border-slate-200">category</td><td class="p-3 border border-slate-200">Intended use of the condo.</td><td class="p-3 border border-slate-200">"Own Use", "Investment", "Mixed"</td></tr>
+                        <tr><td class="p-3 border border-slate-200 font-medium text-slate-800">target_location</td><td class="p-3 border border-slate-200">category</td><td class="p-3 border border-slate-200">Preferred neighborhood / corridor in Bangkok.</td><td class="p-3 border border-slate-200">"Sukhumvit CBD", "Sathorn", "Rama9/Ratchada", "Bang Na", "Lat Phrao", "Thonglor", "Ari/Phahonyothin", "Other Fringe"</td></tr>
+                        <tr class="bg-slate-50"><td class="p-3 border border-slate-200 font-medium text-slate-800">target_condo_type</td><td class="p-3 border border-slate-200">category</td><td class="p-3 border border-slate-200">Desired unit configuration.</td><td class="p-3 border border-slate-200">"Studio", "1BR", "2BR", "3BR", "Penthouse"</td></tr>
+                        <tr><td class="p-3 border border-slate-200 font-medium text-slate-800">desired_unit_size_sqm</td><td class="p-3 border border-slate-200">int (m²)</td><td class="p-3 border border-slate-200">Target internal floor area of the unit.</td><td class="p-3 border border-slate-200">25 – 250 m²</td></tr>
+                        <tr class="bg-slate-50"><td class="p-3 border border-slate-200 font-medium text-slate-800">budget_thb</td><td class="p-3 border border-slate-200">int (THB)</td><td class="p-3 border border-slate-200">Maximum budget the buyer is willing (and able) to spend.</td><td class="p-3 border border-slate-200">max budget</td></tr>
+                        <tr><td class="p-3 border border-slate-200 font-medium text-slate-800">amenity_priority</td><td class="p-3 border border-slate-200">category</td><td class="p-3 border border-slate-200">Single most‑valued shared facility.</td><td class="p-3 border border-slate-200">"Pool", "Gym", "Co‑working", "Kid Play Area", "Concierge", "EV Charging"</td></tr>
+                        <tr class="bg-slate-50"><td class="p-3 border border-slate-200 font-medium text-slate-800">mortgage_approval_status</td><td class="p-3 border border-slate-200">category</td><td class="p-3 border border-slate-200">Outcome of Thai bank mortgage application.</td><td class="p-3 border border-slate-200">"Approved", "Rejected", "N/A"</td></tr>
+                        <tr><td class="p-3 border border-slate-200 font-medium text-slate-800">expected_rental_yield_pct</td><td class="p-3 border border-slate-200">float</td><td class="p-3 border border-slate-200">Buyer’s expected gross annual rental yield as a decimal.</td><td class="p-3 border border-slate-200">0.043 – 0.06</td></tr>
+                        <tr class="bg-slate-50"><td class="p-3 border border-slate-200 font-medium text-slate-800">outlier_flag</td><td class="p-3 border border-slate-200">int (binary)</td><td class="p-3 border border-slate-200">Marks intentionally injected anomalies.</td><td class="p-3 border border-slate-200">0 = normal; 1 = outlier</td></tr>
+                        <tr><td class="p-3 border border-slate-200 font-medium text-slate-800">rating_* (ปัจจัยต่างๆ)</td><td class="p-3 border border-slate-200">int (1‑5)</td><td class="p-3 border border-slate-200">Importance/Sensitivity of various condo features.</td><td class="p-3 border border-slate-200">1 = low (ไม่ให้ความสำคัญ), 5 = critical</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Outlier Data Modal ================= -->
+    <div id="outlier-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden p-4 transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-7xl w-full max-h-[90vh] flex flex-col overflow-hidden border-2 border-red-500/20">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between p-6 border-b border-red-100 bg-red-50">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-exclamation-triangle text-red-500"></i> ข้อมูลที่ผิดปกติ (Outlier Data)
+                    </h2>
+                    <p class="text-sm text-red-600 mt-1">ตารางแสดงรายการข้อมูลทั้งหมดที่ถูกตั้งค่า outlier_flag = 1</p>
+                </div>
+                <button onclick="closeOutlierData()" class="text-slate-400 hover:text-slate-600 bg-white hover:bg-slate-100 rounded-full w-8 h-8 flex items-center justify-center transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <!-- Modal Body (Scrollable Table) -->
+            <div class="p-0 overflow-auto flex-1 bg-slate-50">
+                <table class="w-full text-left text-xs text-slate-600 border-collapse whitespace-nowrap">
+                    <thead class="bg-white text-slate-700 sticky top-0 shadow-sm z-10" id="outlier-table-head">
+                        <!-- หัวตารางจะถูกสร้างด้วย JS -->
+                    </thead>
+                    <tbody id="outlier-table-body">
+                        <!-- ข้อมูลตารางจะถูกสร้างด้วย JS -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -384,6 +508,37 @@
         
         let rawData = [];
         let chartInstances = {};
+
+        // ฟังก์ชันเปิด-ปิด หน้าต่าง Outlier Data
+        function openOutlierData() {
+            document.getElementById('outlier-modal').classList.remove('hidden');
+            renderOutlierTable();
+        }
+
+        function closeOutlierData() {
+            document.getElementById('outlier-modal').classList.add('hidden');
+        }
+
+        // ฟังก์ชันเปิด-ปิด หน้าต่าง Metadata Modal
+        function openMetadata() {
+            document.getElementById('metadata-modal').classList.remove('hidden');
+        }
+
+        function closeMetadata() {
+            document.getElementById('metadata-modal').classList.add('hidden');
+        }
+
+        // ปิด Modal เมื่อคลิกพื้นที่สีดำรอบนอก
+        window.addEventListener('click', function(e) {
+            const modal = document.getElementById('metadata-modal');
+            const outlierModal = document.getElementById('outlier-modal');
+            if (e.target === modal) {
+                closeMetadata();
+            }
+            if (e.target === outlierModal) {
+                closeOutlierData();
+            }
+        });
 
         // ฟังก์ชันซ่อน/แสดง เมนูเลือกกราฟ
         function toggleChartMenu() {
@@ -513,7 +668,7 @@
             });
         }
 
-        ['filter-buyer', 'filter-purpose', 'filter-condo', 'filter-nationality', 'filter-age', 'filter-gender', 'filter-funding'].forEach(id => {
+        ['filter-buyer', 'filter-purpose', 'filter-condo', 'filter-nationality', 'filter-age', 'filter-gender', 'filter-funding', 'filter-outlier'].forEach(id => {
             document.getElementById(id).addEventListener('change', updateDashboard);
         });
 
@@ -537,6 +692,7 @@
             const aFilter = document.getElementById('filter-age').value;
             const gFilter = document.getElementById('filter-gender').value;
             const fFilter = document.getElementById('filter-funding').value;
+            const oFilter = document.getElementById('filter-outlier').value;
 
             const filteredData = rawData.filter(item => {
                 if (bFilter !== 'All' && item.buyer_type !== bFilter) return false;
@@ -545,6 +701,7 @@
                 if (nFilter !== 'All' && item.nationality !== nFilter) return false;
                 if (gFilter !== 'All' && item.gender !== gFilter) return false;
                 if (fFilter !== 'All' && item.funding_source !== fFilter) return false;
+                if (oFilter !== 'All' && String(item.outlier_flag) !== oFilter) return false;
                 
                 if (aFilter !== 'All' && item.age) {
                     const age = Number(item.age);
@@ -561,6 +718,7 @@
             const avgBudget = total > 0 ? filteredData.reduce((acc, curr) => acc + (curr.budget_thb || 0), 0) / total : 0;
             const avgIncome = total > 0 ? filteredData.reduce((acc, curr) => acc + (curr.monthly_income_thb || 0), 0) / total : 0;
             const avgYield = total > 0 ? filteredData.reduce((acc, curr) => acc + (curr.expected_rental_yield_pct || 0), 0) / total : 0;
+            const outlierCount = filteredData.filter(item => String(item.outlier_flag) === '1').length;
             
             const locationCounts = {};
             filteredData.forEach(item => {
@@ -578,8 +736,49 @@
             document.getElementById('kpi-location').innerText = topLoc;
             document.getElementById('kpi-location').title = topLoc;
             document.getElementById('kpi-yield').innerText = (avgYield * 100).toFixed(2) + '%';
+            document.getElementById('kpi-outliers').innerText = formatNumber(outlierCount);
 
             renderCharts(filteredData);
+        }
+
+        // ฟังก์ชันสร้างตาราง Outlier Data
+        function renderOutlierTable() {
+            const head = document.getElementById('outlier-table-head');
+            const body = document.getElementById('outlier-table-body');
+
+            // ดึงข้อมูลที่เป็น outlier_flag = 1 ทั้งหมดจาก rawData
+            const outliers = rawData.filter(item => String(item.outlier_flag) === '1');
+
+            if (outliers.length === 0) {
+                head.innerHTML = '';
+                body.innerHTML = '<tr><td class="p-8 text-center text-slate-500">ไม่พบข้อมูล Outlier ในชุดข้อมูลนี้</td></tr>';
+                return;
+            }
+
+            // ดึงชื่อหัวข้อ (Headers) มาสร้างตาราง
+            const headers = Object.keys(outliers[0]);
+
+            let headHTML = '<tr>';
+            headers.forEach(h => {
+                const isOutlierCol = h === 'outlier_flag' ? 'text-red-600 bg-red-100' : '';
+                headHTML += `<th class="p-3 border border-slate-200 font-semibold ${isOutlierCol}">${h}</th>`;
+            });
+            headHTML += '</tr>';
+            head.innerHTML = headHTML;
+
+            // วนลูปใส่ข้อมูลทีละแถว
+            let bodyHTML = '';
+            outliers.forEach((row, index) => {
+                const bgClass = index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50';
+                bodyHTML += `<tr class="${bgClass} hover:bg-red-50 transition-colors">`;
+                headers.forEach(h => {
+                    const isOutlierCol = h === 'outlier_flag' ? 'text-red-600 font-bold bg-red-50' : '';
+                    let val = row[h] !== undefined ? row[h] : '';
+                    bodyHTML += `<td class="p-3 border border-slate-200 ${isOutlierCol}">${val}</td>`;
+                });
+                bodyHTML += '</tr>';
+            });
+            body.innerHTML = bodyHTML;
         }
 
         function getGroupedData(data, key) {
@@ -738,10 +937,23 @@
                 }]
             }, { maintainAspectRatio: false });
 
+            const ratingDescriptions = {
+                'ทำเล/เข้าถึง': 'ความใกล้ระบบขนส่ง (BTS/MRT) และสิ่งอำนวยความสะดวกในเมือง',
+                'ราคา/คุ้มค่า': 'ความอ่อนไหวต่อราคารวมและความสามารถในการซื้อ',
+                'ส่วนกลาง': 'น้ำหนักที่ให้กับส่วนกลาง (สระว่ายน้ำ, ฟิตเนส, ฯลฯ)',
+                'คุณภาพ/ดีไซน์': 'คุณภาพการก่อสร้าง, เลย์เอาต์, และวัสดุตกแต่ง',
+                'การเดินทาง': 'การเชื่อมต่อระบบขนส่งหลักและทางด่วน',
+                'กรรมสิทธิ์': 'ผลกระทบด้านกฎหมาย (ความชัดเจนโฉนด, Foreign Quota)',
+                'ขายต่อ': 'การเน้นโอกาสทำกำไรส่วนต่างและผลตอบแทนค่าเช่า',
+                'สภาพแวดล้อม': 'ความปลอดภัย, บรรยากาศ, และสิ่งอำนวยความสะดวกในชุมชน',
+                'ชื่อเสียงนักพัฒนา': 'แบรนด์และผลงานที่ผ่านมาของ Developer',
+                'เทรนด์ตลาด': 'ความอ่อนไหวต่อเศรษฐกิจมหภาค (ค่าเงิน, นโยบาย, ดอกเบี้ย)'
+            };
+
             createChart('chartRatings', 'radar', {
                 labels: ratingAverages.map(d => d.label),
                 datasets: [{
-                    label: 'คะแนนเฉลี่ย',
+                    label: 'ระดับความสำคัญเฉลี่ย',
                     data: ratingAverages.map(d => d.avg),
                     backgroundColor: 'rgba(59, 130, 246, 0.2)',
                     borderColor: '#3b82f6',
@@ -765,7 +977,19 @@
                         }
                     }
                 },
-                plugins: { legend: { display: false } }
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ` ระดับความสำคัญเฉลี่ย: ${context.raw}`;
+                            },
+                            afterLabel: function(context) {
+                                return `\n📌 ${ratingDescriptions[context.label]}`;
+                            }
+                        }
+                    }
+                }
             });
         }
 
