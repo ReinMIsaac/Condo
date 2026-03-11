@@ -19,6 +19,9 @@
 
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        /* ซ่อน Scrollbar สำหรับเนื้อหาบางส่วนให้ดูสะอาดตา */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen font-sans">
@@ -32,7 +35,6 @@
             <h1 class="text-2xl font-bold text-slate-800 mb-3">Condo Buyers Dashboard</h1>
             <p class="text-slate-500 mb-8">ระบบวิเคราะห์ข้อมูลพฤติกรรมผู้ซื้อคอนโด</p>
 
-            <!-- ปุ่ม Case Study (จะแสดงผลก็ต่อเมื่อมีไฟล์ data.js อยู่ในโฟลเดอร์เดียวกัน) -->
             <button id="btn-default-data" class="hidden w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-xl transition-colors shadow-md flex items-center justify-center gap-3 text-lg">
                 <i class="fas fa-chart-pie text-xl"></i> ดูข้อมูล Case Study (1000 Data)
             </button>
@@ -44,7 +46,7 @@
     <div id="dashboard-screen" class="hidden p-4 md:p-8">
         <div class="max-w-7xl mx-auto space-y-6">
             
-            <!-- Header (ย้ายปุ่ม Metadata มาไว้ที่นี่) -->
+            <!-- Header (ย้ายปุ่ม Metadata มาไว้ที่นี่ พร้อมเพิ่มปุ่ม AI Insights) -->
             <div class="flex flex-col md:flex-row md:items-center justify-between bg-white p-6 rounded-2xl shadow-sm">
                 <div>
                     <h1 class="text-2xl md:text-3xl font-bold text-slate-800">แดชบอร์ดวิเคราะห์พฤติกรรมผู้ซื้อคอนโด</h1>
@@ -53,15 +55,15 @@
                     </p>
                 </div>
                 <!-- ปุ่มด้านขวาบน -->
-                <div class="mt-4 md:mt-0 flex flex-wrap items-center gap-3">
-                    <button onclick="openOutlierData()" class="bg-red-50 border border-red-200 text-red-600 px-4 py-2 rounded-lg shadow-sm hover:bg-red-100 transition-colors text-sm font-medium flex items-center gap-2">
-                        <i class="fas fa-exclamation-triangle"></i> ข้อมูล Outlier
+                <div class="mt-4 md:mt-0 flex flex-wrap items-center gap-2">
+                    <button onclick="openOutlierData()" class="bg-red-50 border border-red-200 text-red-600 px-3 py-2 rounded-lg shadow-sm hover:bg-red-100 transition-colors text-sm font-medium flex items-center gap-2">
+                        <i class="fas fa-exclamation-triangle"></i> Outlier
                     </button>
-                    <button onclick="openMetadata()" class="bg-indigo-50 border border-indigo-200 text-indigo-600 px-4 py-2 rounded-lg shadow-sm hover:bg-indigo-100 transition-colors text-sm font-medium flex items-center gap-2">
+                    <button onclick="openMetadata()" class="bg-indigo-50 border border-indigo-200 text-indigo-600 px-3 py-2 rounded-lg shadow-sm hover:bg-indigo-100 transition-colors text-sm font-medium flex items-center gap-2">
                         <i class="fas fa-book"></i> พจนานุกรมตัวแปร (Metadata)
                     </button>
-                    <button onclick="window.location.reload()" class="bg-slate-100 text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium flex items-center gap-2">
-                        <i class="fas fa-home"></i> กลับหน้าแรก
+                    <button onclick="window.location.reload()" class="bg-slate-100 text-slate-600 px-3 py-2 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium flex items-center gap-2">
+                        <i class="fas fa-home"></i> หน้าแรก
                     </button>
                 </div>
             </div>
@@ -72,13 +74,30 @@
                     <i class="fas fa-filter"></i>
                     <span>ตัวกรองข้อมูล (Filters)</span>
                 </div>
-                <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
+                <!-- ปรับ Grid จาก xl:grid-cols-8 เป็น xl:grid-cols-5 เพื่อให้ 9 เมนูเรียงกันสวยงาม (5 บน, 4 ล่าง) -->
+                <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-3">
                     <div>
                         <label class="block text-xs font-medium text-slate-500 mb-1">ประเภทผู้ซื้อ</label>
                         <select id="filter-buyer" class="w-full bg-slate-50 border border-slate-200 text-slate-700 rounded-lg py-1.5 px-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="All">ทั้งหมด</option>
                             <option value="Local">Local (ในประเทศ)</option>
                             <option value="Foreign">Foreign (ต่างชาติ)</option>
+                        </select>
+                    </div>
+                    <!-- เพิ่ม Filter สถานะสินเชื่อ (กล่องแดง) ย้ายมาติดประเภทผู้ซื้อ -->
+                    <div>
+                        <label class="block text-xs font-bold text-red-600 mb-1">สถานะอนุมัติสินเชื่อ</label>
+                        <select id="filter-mortgage" class="w-full bg-red-50 border border-red-300 text-red-700 rounded-lg py-1.5 px-2 text-sm outline-none focus:ring-2 focus:ring-red-500 font-medium">
+                            <option value="All">ทั้งหมด</option>
+                            <option value="Accept">Approved + N/A</option>
+                            <option value="Reject">Rejected</option>
+                        </select>
+                    </div>
+                    <!-- ย้าย แหล่งเงินทุน มาต่อจากสถานะสินเชื่อ -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">แหล่งเงินทุน</label>
+                        <select id="filter-funding" class="w-full bg-slate-50 border border-slate-200 text-slate-700 rounded-lg py-1.5 px-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="All">ทั้งหมด</option>
                         </select>
                     </div>
                     <div>
@@ -99,6 +118,12 @@
                             <option value="2BR">2 Bedroom</option>
                             <option value="3BR">3 Bedroom</option>
                             <option value="Penthouse">Penthouse</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">ทำเลที่ต้องการ</label>
+                        <select id="filter-location" class="w-full bg-slate-50 border border-slate-200 text-slate-700 rounded-lg py-1.5 px-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="All">ทั้งหมด</option>
                         </select>
                     </div>
                     <div>
@@ -124,12 +149,6 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-500 mb-1">แหล่งเงินทุน</label>
-                        <select id="filter-funding" class="w-full bg-slate-50 border border-slate-200 text-slate-700 rounded-lg py-1.5 px-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="All">ทั้งหมด</option>
-                        </select>
-                    </div>
-                    <div>
                         <label class="block text-xs font-medium text-slate-500 mb-1">สถานะข้อมูล (Outlier)</label>
                         <select id="filter-outlier" class="w-full bg-red-50/50 border border-red-200 text-slate-700 rounded-lg py-1.5 px-2 text-sm outline-none focus:ring-2 focus:ring-red-500">
                             <option value="All">ทั้งหมด (รวม Outlier)</option>
@@ -141,70 +160,93 @@
             </div>
 
             <!-- KPIs -->
-            <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-blue-500">
                     <div class="flex items-center gap-4">
-                        <div class="bg-blue-100 w-12 h-12 flex items-center justify-center rounded-xl text-blue-600">
+                        <div class="bg-blue-100 w-12 h-12 flex items-center justify-center rounded-xl text-blue-600 shrink-0">
                             <i class="fas fa-users text-xl"></i>
                         </div>
-                        <div>
-                            <p class="text-sm font-medium text-slate-500">จำนวนผู้ซื้อ (ราย)</p>
-                            <h3 id="kpi-total" class="text-2xl font-bold text-slate-800">0</h3>
+                        <div class="min-w-0">
+                            <p class="text-sm font-medium text-slate-500 truncate">จำนวนผู้ซื้อ (ราย)</p>
+                            <h3 id="kpi-total" class="text-2xl font-bold text-slate-800 truncate">0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-teal-500">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-teal-100 w-12 h-12 flex items-center justify-center rounded-xl text-teal-600 shrink-0">
+                            <i class="fas fa-sack-dollar text-xl"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-sm font-medium text-slate-500 truncate">งบประมาณรวม (บาท)</p>
+                            <h3 id="kpi-total-budget" class="text-2xl font-bold text-slate-800 truncate" title="0">0</h3>
                         </div>
                     </div>
                 </div>
                 <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-emerald-500">
                     <div class="flex items-center gap-4">
-                        <div class="bg-emerald-100 w-12 h-12 flex items-center justify-center rounded-xl text-emerald-600">
+                        <div class="bg-emerald-100 w-12 h-12 flex items-center justify-center rounded-xl text-emerald-600 shrink-0">
                             <i class="fas fa-dollar-sign text-xl"></i>
                         </div>
-                        <div>
-                            <p class="text-sm font-medium text-slate-500">งบประมาณเฉลี่ย (บาท)</p>
-                            <h3 id="kpi-budget" class="text-2xl font-bold text-slate-800">0</h3>
+                        <div class="min-w-0">
+                            <p class="text-sm font-medium text-slate-500 truncate">งบประมาณเฉลี่ย (บาท)</p>
+                            <h3 id="kpi-budget" class="text-2xl font-bold text-slate-800 truncate">0</h3>
                         </div>
                     </div>
                 </div>
                 <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-violet-500">
                     <div class="flex items-center gap-4">
-                        <div class="bg-violet-100 w-12 h-12 flex items-center justify-center rounded-xl text-violet-600">
+                        <div class="bg-violet-100 w-12 h-12 flex items-center justify-center rounded-xl text-violet-600 shrink-0">
                             <i class="fas fa-money-bill-wave text-xl"></i>
                         </div>
-                        <div>
-                            <p class="text-sm font-medium text-slate-500">รายได้เฉลี่ย (บาท/เดือน)</p>
-                            <h3 id="kpi-income" class="text-2xl font-bold text-slate-800">0</h3>
+                        <div class="min-w-0">
+                            <p class="text-sm font-medium text-slate-500 truncate">รายได้เฉลี่ย (บาท/เดือน)</p>
+                            <h3 id="kpi-income" class="text-2xl font-bold text-slate-800 truncate">0</h3>
                         </div>
                     </div>
                 </div>
                 <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-amber-500">
                     <div class="flex items-center gap-4">
-                        <div class="bg-amber-100 w-12 h-12 flex items-center justify-center rounded-xl text-amber-600">
+                        <div class="bg-amber-100 w-12 h-12 flex items-center justify-center rounded-xl text-amber-600 shrink-0">
                             <i class="fas fa-map-marker-alt text-xl"></i>
                         </div>
-                        <div class="overflow-hidden">
-                            <p class="text-sm font-medium text-slate-500">ทำเลยอดนิยมสูงสุด</p>
+                        <div class="min-w-0">
+                            <p class="text-sm font-medium text-slate-500 truncate">ทำเลยอดนิยมสูงสุด</p>
                             <h3 id="kpi-location" class="text-lg font-bold text-slate-800 truncate">-</h3>
                         </div>
                     </div>
                 </div>
                 <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-rose-500">
                     <div class="flex items-center gap-4">
-                        <div class="bg-rose-100 w-12 h-12 flex items-center justify-center rounded-xl text-rose-600">
+                        <div class="bg-rose-100 w-12 h-12 flex items-center justify-center rounded-xl text-rose-600 shrink-0">
                             <i class="fas fa-chart-line text-xl"></i>
                         </div>
-                        <div>
-                            <p class="text-sm font-medium text-slate-500">Rental Yield คาดหวัง</p>
-                            <h3 id="kpi-yield" class="text-2xl font-bold text-slate-800">0%</h3>
+                        <div class="min-w-0">
+                            <p class="text-sm font-medium text-slate-500 truncate">Rental Yield คาดหวัง</p>
+                            <h3 id="kpi-yield" class="text-2xl font-bold text-slate-800 truncate">0%</h3>
+                        </div>
+                    </div>
+                </div>
+                <!-- เพิ่ม KPI อัตรากู้ผ่าน ไว้ก่อน Outlier -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-cyan-500">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-cyan-100 w-12 h-12 flex items-center justify-center rounded-xl text-cyan-600 shrink-0">
+                            <i class="fas fa-percent text-xl"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-sm font-medium text-slate-500 truncate">อัตรากู้ผ่าน (Approval Rate)</p>
+                            <h3 id="kpi-mortgage-rate" class="text-2xl font-bold text-slate-800 truncate">0%</h3>
                         </div>
                     </div>
                 </div>
                 <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-red-500">
                     <div class="flex items-center gap-4">
-                        <div class="bg-red-100 w-12 h-12 flex items-center justify-center rounded-xl text-red-600">
+                        <div class="bg-red-100 w-12 h-12 flex items-center justify-center rounded-xl text-red-600 shrink-0">
                             <i class="fas fa-exclamation-triangle text-xl"></i>
                         </div>
-                        <div>
-                            <p class="text-sm font-medium text-slate-500">จำนวน Outlier</p>
-                            <h3 id="kpi-outliers" class="text-2xl font-bold text-slate-800">0</h3>
+                        <div class="min-w-0">
+                            <p class="text-sm font-medium text-slate-500 truncate">จำนวน Outlier</p>
+                            <h3 id="kpi-outliers" class="text-2xl font-bold text-slate-800 truncate">0</h3>
                         </div>
                     </div>
                 </div>
@@ -265,7 +307,7 @@
                 </div>
             </div>
 
-            <!-- Charts (ปรับ Layout เป็น Grid สำหรับ 1x1 ธรรมดา) -->
+            <!-- Charts -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="charts-container">
                 
                 <!-- 1. กราฟทำเล -->
@@ -681,12 +723,25 @@
             const body = document.getElementById(bodyId);
             const icon = document.getElementById(iconId);
             
+            // หา Card แม่ที่คลุมกราฟอยู่
+            const card = body.closest('.rounded-2xl.shadow-sm');
+            // หาคำอธิบาย (Subtitle) ที่อยู่ก่อนหน้าตัวกราฟ
+            const subtitle = body.previousElementSibling;
+            // หา Header ของการ์ด (อยู่ก่อนหน้าคำอธิบาย)
+            const header = subtitle ? subtitle.previousElementSibling : null;
+            
             if (body.classList.contains('hidden')) {
                 body.classList.remove('hidden');
                 icon.style.transform = "rotate(0deg)"; // ลูกศรชี้ขึ้น
+                if (card) card.classList.remove('self-start'); // ให้การ์ดยืดเต็ม Grid ตามความสูงแถวเหมือนเดิม
+                if (subtitle && subtitle.tagName.toLowerCase() === 'p') subtitle.classList.remove('hidden'); // โชว์คำอธิบาย
+                if (header) header.classList.add('pb-2'); // ทำให้ช่องว่างชิดกับคำอธิบาย
             } else {
                 body.classList.add('hidden');
                 icon.style.transform = "rotate(180deg)"; // ลูกศรชี้ลง
+                if (card) card.classList.add('self-start'); // หดการ์ดให้พอดีกับแถบ Header แยกเป็นอิสระไม่ยืดตามเพื่อน
+                if (subtitle && subtitle.tagName.toLowerCase() === 'p') subtitle.classList.add('hidden'); // ซ่อนคำอธิบายให้ดูคลีน
+                if (header) header.classList.remove('pb-2'); // ขยายกรอบด้านล่างให้สมมาตรกับด้านบน (คืนค่า p-5 ปกติ)
             }
         }
 
@@ -790,7 +845,7 @@
             });
         }
 
-        ['filter-buyer', 'filter-purpose', 'filter-condo', 'filter-nationality', 'filter-age', 'filter-gender', 'filter-funding', 'filter-outlier'].forEach(id => {
+        ['filter-buyer', 'filter-mortgage', 'filter-purpose', 'filter-condo', 'filter-location', 'filter-nationality', 'filter-age', 'filter-gender', 'filter-funding', 'filter-outlier'].forEach(id => {
             document.getElementById(id).addEventListener('change', updateDashboard);
         });
 
@@ -799,6 +854,7 @@
             document.getElementById('dashboard-screen').classList.remove('hidden');
             document.getElementById('display-filename').innerText = filename;
             
+            populateDropdown('filter-location', rawData, 'target_location');
             populateDropdown('filter-nationality', rawData, 'nationality');
             populateDropdown('filter-gender', rawData, 'gender');
             populateDropdown('filter-funding', rawData, 'funding_source');
@@ -810,20 +866,27 @@
             const bFilter = document.getElementById('filter-buyer').value;
             const pFilter = document.getElementById('filter-purpose').value;
             const cFilter = document.getElementById('filter-condo').value;
+            const lFilter = document.getElementById('filter-location').value;
             const nFilter = document.getElementById('filter-nationality').value;
             const aFilter = document.getElementById('filter-age').value;
             const gFilter = document.getElementById('filter-gender').value;
             const fFilter = document.getElementById('filter-funding').value;
             const oFilter = document.getElementById('filter-outlier').value;
+            const mFilter = document.getElementById('filter-mortgage').value;
 
             const filteredData = rawData.filter(item => {
                 if (bFilter !== 'All' && item.buyer_type !== bFilter) return false;
                 if (pFilter !== 'All' && item.purchase_purpose !== pFilter) return false;
                 if (cFilter !== 'All' && item.target_condo_type !== cFilter) return false;
+                if (lFilter !== 'All' && item.target_location !== lFilter) return false;
                 if (nFilter !== 'All' && item.nationality !== nFilter) return false;
                 if (gFilter !== 'All' && item.gender !== gFilter) return false;
                 if (fFilter !== 'All' && item.funding_source !== fFilter) return false;
                 if (oFilter !== 'All' && String(item.outlier_flag) !== oFilter) return false;
+                
+                // เช็คสถานะสินเชื่อ
+                if (mFilter === 'Accept' && item.mortgage_approval_status === 'Rejected') return false;
+                if (mFilter === 'Reject' && item.mortgage_approval_status !== 'Rejected') return false;
                 
                 if (aFilter !== 'All' && item.age) {
                     const age = Number(item.age);
@@ -837,10 +900,17 @@
             });
 
             const total = filteredData.length;
-            const avgBudget = total > 0 ? filteredData.reduce((acc, curr) => acc + (curr.budget_thb || 0), 0) / total : 0;
+            const totalBudget = filteredData.reduce((acc, curr) => acc + (curr.budget_thb || 0), 0);
+            const avgBudget = total > 0 ? totalBudget / total : 0;
             const avgIncome = total > 0 ? filteredData.reduce((acc, curr) => acc + (curr.monthly_income_thb || 0), 0) / total : 0;
             const avgYield = total > 0 ? filteredData.reduce((acc, curr) => acc + (curr.expected_rental_yield_pct || 0), 0) / total : 0;
             const outlierCount = filteredData.filter(item => String(item.outlier_flag) === '1').length;
+            
+            // คำนวณอัตราอนุมัติสินเชื่อ (Approval Rate)
+            const approvedCount = filteredData.filter(item => item.mortgage_approval_status === 'Approved').length;
+            const rejectedCount = filteredData.filter(item => item.mortgage_approval_status === 'Rejected').length;
+            const totalApplied = approvedCount + rejectedCount;
+            const approvalRate = totalApplied > 0 ? (approvedCount / totalApplied) * 100 : 0;
             
             const locationCounts = {};
             filteredData.forEach(item => {
@@ -853,11 +923,14 @@
             });
 
             document.getElementById('kpi-total').innerText = formatNumber(total);
+            document.getElementById('kpi-total-budget').innerText = formatNumber(totalBudget);
+            document.getElementById('kpi-total-budget').title = formatNumber(totalBudget);
             document.getElementById('kpi-budget').innerText = formatNumber(avgBudget);
             document.getElementById('kpi-income').innerText = formatNumber(avgIncome);
             document.getElementById('kpi-location').innerText = topLoc;
             document.getElementById('kpi-location').title = topLoc;
             document.getElementById('kpi-yield').innerText = (avgYield * 100).toFixed(2) + '%';
+            document.getElementById('kpi-mortgage-rate').innerText = totalApplied > 0 ? `${approvalRate.toFixed(1)}%` : '-';
             document.getElementById('kpi-outliers').innerText = formatNumber(outlierCount);
 
             // เก็บข้อมูลที่กรองแล้วไว้ใน Global เพื่อให้ปุ่ม "ดูข้อมูลย่อย" เรียกใช้ได้
