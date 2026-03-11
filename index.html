@@ -322,9 +322,14 @@
                         <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
                             <i class="fas fa-user-clock text-slate-400"></i> ช่วงอายุ
                         </h3>
-                        <button onclick="toggleMinimize('body-age', 'icon-age')" class="text-slate-400 hover:text-slate-600 outline-none">
-                            <i id="icon-age" class="fas fa-chevron-up transition-transform"></i>
-                        </button>
+                        <div class="flex items-center gap-2">
+                            <button onclick="showDataDetails('age')" class="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-md text-xs font-semibold transition-colors flex items-center gap-1" title="ดูรายละเอียดตัวเลข">
+                                <i class="fas fa-list-ul"></i> ดูข้อมูลย่อย
+                            </button>
+                            <button onclick="toggleMinimize('body-age', 'icon-age')" class="text-slate-400 hover:text-slate-600 outline-none ml-1">
+                                <i id="icon-age" class="fas fa-chevron-up transition-transform"></i>
+                            </button>
+                        </div>
                     </div>
                     <p class="px-5 text-[11px] text-slate-500 mb-2">อายุของผู้ซื้อ ณ เวลาที่สอบถามหรือตัดสินใจซื้อ (Buyer's age at time of enquiry)</p>
                     <div id="body-age" class="px-5 pb-5 relative h-60 flex justify-center w-full transition-all">
@@ -354,9 +359,14 @@
                         <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
                             <i class="fas fa-ruler-combined text-slate-400"></i> ขนาดห้อง
                         </h3>
-                        <button onclick="toggleMinimize('body-unitsize', 'icon-unitsize')" class="text-slate-400 hover:text-slate-600 outline-none">
-                            <i id="icon-unitsize" class="fas fa-chevron-up transition-transform"></i>
-                        </button>
+                        <div class="flex items-center gap-2">
+                            <button onclick="showDataDetails('unitsize')" class="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-md text-xs font-semibold transition-colors flex items-center gap-1" title="ดูรายละเอียดตัวเลข">
+                                <i class="fas fa-list-ul"></i> ดูข้อมูลย่อย
+                            </button>
+                            <button onclick="toggleMinimize('body-unitsize', 'icon-unitsize')" class="text-slate-400 hover:text-slate-600 outline-none ml-1">
+                                <i id="icon-unitsize" class="fas fa-chevron-up transition-transform"></i>
+                            </button>
+                        </div>
                     </div>
                     <p class="px-5 text-[11px] text-slate-500 mb-2">เป้าหมายขนาดพื้นที่ใช้สอยภายในห้อง (Target internal floor area)</p>
                     <div id="body-unitsize" class="px-5 pb-5 relative h-60 flex justify-center w-full transition-all">
@@ -502,12 +512,120 @@
         </div>
     </div>
 
+    <!-- ================= Data Details Modal (หน้าต่างแสดงข้อมูลย่อย) ================= -->
+    <div id="details-modal" class="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden p-4 transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between p-5 border-b border-slate-100 bg-white">
+                <h2 id="details-modal-title" class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fas fa-list text-blue-500"></i> รายละเอียดข้อมูล (Data Details)
+                </h2>
+                <button onclick="closeDataDetails()" class="text-slate-400 hover:text-slate-600 bg-white hover:bg-slate-100 rounded-full w-8 h-8 flex items-center justify-center transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <!-- Modal Body (Scrollable) -->
+            <div id="details-modal-body" class="p-6 overflow-y-auto bg-slate-50">
+                <!-- ข้อมูลย่อยจะถูกสร้างด้วย JS -->
+            </div>
+        </div>
+    </div>
+
     <!-- ================= Javascript Logic ================= -->
     <script>
         const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#f97316', '#ec4899', '#14b8a6', '#84cc16'];
         
         let rawData = [];
         let chartInstances = {};
+
+        // ฟังก์ชันเปิด-ปิด หน้าต่าง Data Details
+        function showDataDetails(type) {
+            document.getElementById('details-modal').classList.remove('hidden');
+            const titleEl = document.getElementById('details-modal-title');
+            const bodyEl = document.getElementById('details-modal-body');
+
+            let html = '';
+
+            // ดึงข้อมูลปัจจุบันที่โดน Filter แล้วมาประมวลผล
+            const currentData = window.currentFilteredData || [];
+
+            if (type === 'age') {
+                titleEl.innerHTML = '<i class="fas fa-user-clock text-blue-500"></i> รายละเอียดข้อมูล: ช่วงอายุ';
+                const breakdown = { '<30': {}, '30-39': {}, '40-49': {}, '50+': {} };
+                const order = ['<30', '30-39', '40-49', '50+'];
+
+                currentData.forEach(item => {
+                    const age = Number(item.age);
+                    if (!age) return;
+                    let range = '';
+                    if (age < 30) range = '<30';
+                    else if (age <= 39) range = '30-39';
+                    else if (age <= 49) range = '40-49';
+                    else range = '50+';
+                    breakdown[range][age] = (breakdown[range][age] || 0) + 1;
+                });
+
+                order.forEach(range => {
+                    const keys = Object.keys(breakdown[range]).map(Number).sort((a,b) => a-b);
+                    const totalInRange = keys.reduce((sum, k) => sum + breakdown[range][k], 0);
+
+                    if (totalInRange > 0) {
+                        html += `<div class="mb-5 bg-white p-5 rounded-xl border border-slate-200 shadow-sm">`;
+                        html += `<h4 class="font-bold text-slate-800 border-b pb-2 mb-3">กลุ่ม ${range} ปี <span class="text-blue-600 font-normal text-sm ml-1">(รวม ${totalInRange} ราย)</span></h4>`;
+                        html += `<div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm text-slate-600">`;
+                        keys.forEach(k => {
+                            html += `<div class="flex justify-between items-center bg-slate-50 px-3 py-2 rounded-lg border border-slate-100">
+                                        <span>อายุ ${k} ปี</span> 
+                                        <span class="font-semibold text-slate-800 bg-slate-200 px-2 py-0.5 rounded text-xs">${breakdown[range][k]} ราย</span>
+                                     </div>`;
+                        });
+                        html += `</div></div>`;
+                    }
+                });
+
+            } else if (type === 'unitsize') {
+                titleEl.innerHTML = '<i class="fas fa-ruler-combined text-teal-500"></i> รายละเอียดข้อมูล: ขนาดห้อง';
+                const breakdown = { '< 30 ตร.ม.': {}, '30-50 ตร.ม.': {}, '51-80 ตร.ม.': {}, '81-100 ตร.ม.': {}, '> 100 ตร.ม.': {} };
+                const order = ['< 30 ตร.ม.', '30-50 ตร.ม.', '51-80 ตร.ม.', '81-100 ตร.ม.', '> 100 ตร.ม.'];
+
+                currentData.forEach(item => {
+                    const sqm = Number(item.desired_unit_size_sqm);
+                    if (!sqm) return;
+                    let range = '';
+                    if (sqm < 30) range = '< 30 ตร.ม.';
+                    else if (sqm <= 50) range = '30-50 ตร.ม.';
+                    else if (sqm <= 80) range = '51-80 ตร.ม.';
+                    else if (sqm <= 100) range = '81-100 ตร.ม.';
+                    else range = '> 100 ตร.ม.';
+                    breakdown[range][sqm] = (breakdown[range][sqm] || 0) + 1;
+                });
+
+                order.forEach(range => {
+                    const keys = Object.keys(breakdown[range]).map(Number).sort((a,b) => a-b);
+                    const totalInRange = keys.reduce((sum, k) => sum + breakdown[range][k], 0);
+
+                    if (totalInRange > 0) {
+                        html += `<div class="mb-5 bg-white p-5 rounded-xl border border-slate-200 shadow-sm">`;
+                        html += `<h4 class="font-bold text-slate-800 border-b pb-2 mb-3">กลุ่ม ${range} <span class="text-teal-600 font-normal text-sm ml-1">(รวม ${totalInRange} ราย)</span></h4>`;
+                        html += `<div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm text-slate-600">`;
+                        keys.forEach(k => {
+                            html += `<div class="flex justify-between items-center bg-slate-50 px-3 py-2 rounded-lg border border-slate-100">
+                                        <span>ขนาด ${k} ตร.ม.</span> 
+                                        <span class="font-semibold text-slate-800 bg-slate-200 px-2 py-0.5 rounded text-xs">${breakdown[range][k]} ราย</span>
+                                     </div>`;
+                        });
+                        html += `</div></div>`;
+                    }
+                });
+            }
+
+            if(html === '') html = '<p class="text-center text-slate-500 py-6">ไม่พบข้อมูลในช่วงที่เลือก</p>';
+            bodyEl.innerHTML = html;
+        }
+
+        function closeDataDetails() {
+            document.getElementById('details-modal').classList.add('hidden');
+        }
 
         // ฟังก์ชันเปิด-ปิด หน้าต่าง Outlier Data
         function openOutlierData() {
@@ -532,11 +650,15 @@
         window.addEventListener('click', function(e) {
             const modal = document.getElementById('metadata-modal');
             const outlierModal = document.getElementById('outlier-modal');
+            const detailsModal = document.getElementById('details-modal');
             if (e.target === modal) {
                 closeMetadata();
             }
             if (e.target === outlierModal) {
                 closeOutlierData();
+            }
+            if (e.target === detailsModal) {
+                closeDataDetails();
             }
         });
 
@@ -737,6 +859,9 @@
             document.getElementById('kpi-location').title = topLoc;
             document.getElementById('kpi-yield').innerText = (avgYield * 100).toFixed(2) + '%';
             document.getElementById('kpi-outliers').innerText = formatNumber(outlierCount);
+
+            // เก็บข้อมูลที่กรองแล้วไว้ใน Global เพื่อให้ปุ่ม "ดูข้อมูลย่อย" เรียกใช้ได้
+            window.currentFilteredData = filteredData;
 
             renderCharts(filteredData);
         }
