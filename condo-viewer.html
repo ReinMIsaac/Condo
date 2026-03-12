@@ -8,7 +8,7 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- FontAwesome (matching your index.html) -->
+    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- React & ReactDOM (Standalone) -->
@@ -23,8 +23,6 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
-        
-        /* Smooth transitions for tabs */
         .tab-transition { transition: all 0.3s ease; }
     </style>
 </head>
@@ -38,78 +36,115 @@
         // --- SPECIFICATIONS DICTIONARY ---
         const UNIT_SPECS = {
           'STUDIO': {
-            type: 'Studio Suite', isResidential: true, beds: 1, baths: 1, sqft: 280, price: '$210,000',
+            type: 'Studio Suite', isResidential: true, beds: 1, baths: 1, sqm: 28, price: '฿2,800,000',
             description: 'Compact, ultra-efficient living space perfect for young professionals. Features smart-home tech and hidden storage.',
             color: 'bg-emerald-900/40', borderColor: 'border-emerald-500', hoverColor: 'hover:bg-emerald-800/60', textColor: 'text-emerald-400'
           },
           '1-BED': {
-            type: '1 Bedroom Suite', isResidential: true, beds: 1, baths: 1, sqft: 470, price: '$350,000',
+            type: '1 Bedroom Suite', isResidential: true, beds: 1, baths: 1, sqm: 35, price: '฿4,500,000',
             description: 'A brilliantly designed one-bedroom suite featuring floor-to-ceiling windows, a modern European kitchen, and a private balcony.',
             color: 'bg-teal-900/40', borderColor: 'border-teal-500', hoverColor: 'hover:bg-teal-800/60', textColor: 'text-teal-400'
           },
           '2-BED': {
-            type: '2 Bedroom Corner', isResidential: true, beds: 2, baths: 2, sqft: 750, price: '$580,000',
+            type: '2 Bedroom Corner', isResidential: true, beds: 2, baths: 2, sqm: 65, price: '฿8,500,000',
             description: 'Spacious corner unit offering panoramic city views. Includes a primary suite with a walk-in closet and en-suite luxury bathroom.',
             color: 'bg-blue-900/40', borderColor: 'border-blue-500', hoverColor: 'hover:bg-blue-800/60', textColor: 'text-blue-400'
           },
           '3-BED': {
-            type: '3 Bedroom Family', isResidential: true, beds: 3, baths: 3, sqft: 1150, price: '$980,000',
+            type: '3 Bedroom Family', isResidential: true, beds: 3, baths: 3, sqm: 110, price: '฿15,000,000',
             description: 'Expansive family residence with a massive open-plan living area, maid quarters, and premium imported fixtures.',
             color: 'bg-indigo-900/40', borderColor: 'border-indigo-500', hoverColor: 'hover:bg-indigo-800/60', textColor: 'text-indigo-400'
           },
           'PENTHOUSE': {
-            type: 'Grand Penthouse', isResidential: true, beds: 4, baths: 4.5, sqft: 2450, price: '$3,200,000',
+            type: 'Grand Penthouse', isResidential: true, beds: 4, baths: 4.5, sqm: 250, price: '฿45,000,000',
             description: 'The pinnacle of luxury living. This full-floor penthouse boasts a private elevator lobby, massive wraparound terrace, and custom designer finishes.',
             color: 'bg-amber-900/40', borderColor: 'border-amber-500', hoverColor: 'hover:bg-amber-800/60', textColor: 'text-amber-400'
           },
-          // Amenities
+          
+          // Amenities - Ground
+          'CONCIERGE': {
+            type: '24/7 Concierge', isResidential: false, icon: 'fas fa-bell', stat1: 'Personal Service', stat2: 'Guest Reception', sqm: 45, price: 'Included',
+            description: 'Premium concierge services catering to your daily needs, from booking transport to personal assistance.',
+            color: 'bg-blue-900/40', borderColor: 'border-blue-500', hoverColor: 'hover:bg-blue-800/60', textColor: 'text-blue-400'
+          },
+          'SECURITY': {
+            type: 'Security Center', isResidential: false, icon: 'fas fa-shield-alt', stat1: '24/7 Monitoring', stat2: 'CCTV Control', sqm: 25, price: 'Included',
+            description: 'On-site command center with 24-hour security guards ensuring the utmost safety for all residents.',
+            color: 'bg-slate-800/80', borderColor: 'border-slate-500', hoverColor: 'hover:bg-slate-700/80', textColor: 'text-slate-400'
+          },
+          'PACKAGES': {
+            type: 'Package Drop Zone', isResidential: false, icon: 'fas fa-box', stat1: 'Smart Lockers', stat2: 'Cold Storage', sqm: 35, price: 'Included',
+            description: 'Secure, automated smart locker system for seamless package and food delivery receiving.',
+            color: 'bg-indigo-900/40', borderColor: 'border-indigo-500', hoverColor: 'hover:bg-indigo-800/60', textColor: 'text-indigo-400'
+          },
+          
+          // Amenities - Parking
           'PARKING': {
-            type: 'Resident Parking', isResidential: false, icon: 'fas fa-car', stat1: 'Auto-Parking', stat2: 'EV Ready', sqft: 'Multiple', price: 'Included',
+            type: 'Resident Parking', isResidential: false, icon: 'fas fa-car', stat1: 'Auto-Parking', stat2: 'EV Ready', sqm: 'Multiple', price: 'Included',
             description: 'Secure, 24/7 monitored resident parking facility with dedicated EV charging stations.',
             color: 'bg-slate-800/80', borderColor: 'border-slate-500', hoverColor: 'hover:bg-slate-700/80', textColor: 'text-slate-300'
           },
-          'COWORK': {
-            type: 'Co-working Lounge', isResidential: false, icon: 'fas fa-wifi', stat1: 'High-Speed Wi-Fi', stat2: 'Meeting Rooms', sqft: 3200, price: 'Exclusive Access',
-            description: 'A dedicated floor for remote work and collaboration, featuring hot desks and soundproof pods.',
-            color: 'bg-purple-900/40', borderColor: 'border-purple-500', hoverColor: 'hover:bg-purple-800/60', textColor: 'text-purple-400'
-          },
-          'KITCHEN': {
-            type: 'Shared Kitchen', isResidential: false, icon: 'fas fa-mug-hot', stat1: 'Barista Machine', stat2: 'Events', sqft: 800, price: 'Communal',
-            description: 'A fully equipped communal kitchen and dining area.',
-            color: 'bg-orange-900/40', borderColor: 'border-orange-500', hoverColor: 'hover:bg-orange-800/60', textColor: 'text-orange-400'
-          },
+          
+          // Amenities - Health & Retail (F7 / F4)
           '7-ELEVEN': {
-            type: 'Commodity Retail', isResidential: false, icon: 'fas fa-store', stat1: '24/7 Access', stat2: 'Groceries', sqft: 1200, price: 'Public & Residents',
-            description: 'Convenience at your doorstep. A fully stocked 24/7 convenience store.',
+            type: 'Commodity Retail', isResidential: false, icon: 'fas fa-store', stat1: '24/7 Access', stat2: 'Groceries', sqm: 110, price: 'Public & Residents',
+            description: 'Convenience just an elevator ride away. A fully stocked 24/7 convenience store built directly into the amenity floor.',
             color: 'bg-red-900/40', borderColor: 'border-red-500', hoverColor: 'hover:bg-red-800/60', textColor: 'text-red-400'
           },
           'GYM': {
-            type: 'Fitness Center', isResidential: false, icon: 'fas fa-dumbbell', stat1: '24/7 Access', stat2: 'Cardio & Weights', sqft: 2500, price: 'Exclusive Access',
+            type: 'Fitness Center', isResidential: false, icon: 'fas fa-dumbbell', stat1: '24/7 Access', stat2: 'Cardio & Weights', sqm: 230, price: 'Exclusive Access',
             description: 'State-of-the-art fitness center featuring cardio machines, free weights, and a yoga studio.',
             color: 'bg-rose-900/40', borderColor: 'border-rose-500', hoverColor: 'hover:bg-rose-800/60', textColor: 'text-rose-400'
           },
           'POOL': {
-            type: 'Infinity Pool', isResidential: false, icon: 'fas fa-water', stat1: 'Temp Controlled', stat2: 'Sky Deck', sqft: 4000, price: 'Exclusive Access',
+            type: 'Infinity Pool', isResidential: false, icon: 'fas fa-water', stat1: 'Temp Controlled', stat2: 'Sky Deck', sqm: 370, price: 'Exclusive Access',
             description: 'A stunning resort-style infinity pool with an adjacent sun deck and cabanas.',
             color: 'bg-cyan-900/40', borderColor: 'border-cyan-500', hoverColor: 'hover:bg-cyan-800/60', textColor: 'text-cyan-400'
+          },
+          'KIDS_PLAY': {
+            type: 'Kids Play Area', isResidential: false, icon: 'fas fa-child', stat1: 'Indoor/Outdoor', stat2: 'Safe Zone', sqm: 140, price: 'Exclusive Access',
+            description: 'A fun, safe, and engaging play area designed for children of all ages. Includes interactive zones and soft play structures.',
+            color: 'bg-yellow-900/40', borderColor: 'border-yellow-500', hoverColor: 'hover:bg-yellow-800/60', textColor: 'text-yellow-400'
+          },
+          
+          // Amenities - Social (F8 / F5)
+          'COWORK': {
+            type: 'Co-working Space', isResidential: false, icon: 'fas fa-wifi', stat1: 'High-Speed Wi-Fi', stat2: 'Meeting Rooms', sqm: 300, price: 'Exclusive Access',
+            description: 'A dedicated quiet floor for remote work and collaboration, featuring hot desks and soundproof pods.',
+            color: 'bg-purple-900/40', borderColor: 'border-purple-500', hoverColor: 'hover:bg-purple-800/60', textColor: 'text-purple-400'
+          },
+          'KITCHEN': {
+            type: 'Shared Kitchen', isResidential: false, icon: 'fas fa-utensils', stat1: 'Chef Grade Equipment', stat2: 'Events', sqm: 75, price: 'Communal',
+            description: 'A fully equipped communal kitchen and dining area perfect for hosting friends or participating in community cooking classes.',
+            color: 'bg-orange-900/40', borderColor: 'border-orange-500', hoverColor: 'hover:bg-orange-800/60', textColor: 'text-orange-400'
+          },
+          'LOUNGE': {
+            type: 'Resident Lounge', isResidential: false, icon: 'fas fa-couch', stat1: 'Relaxation Area', stat2: 'Social Events', sqm: 165, price: 'Exclusive Access',
+            description: 'A luxurious lounge area for residents to unwind, socialize, or host informal gatherings.',
+            color: 'bg-pink-900/40', borderColor: 'border-pink-500', hoverColor: 'hover:bg-pink-800/60', textColor: 'text-pink-400'
           }
         };
 
         // --- DYNAMIC FLOOR GENERATORS ---
+        
         // Tower A: 40 Floors (Studio & 1BR Focus)
         const generateTowerA = () => {
             const floors = [];
             floors.push({ level: 40, name: 'Floor 40 - Penthouse', type: 'penthouse', units: ['PHA-40'] });
             floors.push({ level: 39, name: 'Floor 39 - Penthouse', type: 'penthouse', units: ['PHA-39'] });
             
-            for (let i = 38; i >= 7; i--) {
+            for (let i = 38; i >= 9; i--) {
                 floors.push({ 
                     level: i, name: `Floor ${i} - Residential`, type: 'standard-a', 
                     units: [`${i}01`,`${i}02`,`${i}03`,`${i}04`,`${i}05`,`${i}06`,`${i}07`,`${i}08`,`${i}09`,`${i}10`] 
                 });
             }
-            floors.push({ level: 6, name: 'Floor 6 - Sky Amenities', type: 'amenities', units: ['POOL', 'GYM'] });
-            for (let i = 5; i >= 1; i--) { floors.push({ level: i, name: `Floor ${i} - Parking`, type: 'parking', units: [`P${i}`] }); }
+            floors.push({ level: 8, name: 'Floor 8 - Business & Social', type: 'social', units: ['COWORK', 'KITCHEN', 'LOUNGE'] });
+            floors.push({ level: 7, name: 'Floor 7 - Health & Retail', type: 'wellness-retail', units: ['POOL', 'GYM', 'KIDS_PLAY', '7-ELEVEN'] });
+            
+            for (let i = 6; i >= 2; i--) { floors.push({ level: i, name: `Floor ${i} - Parking`, type: 'parking', units: [`P${i}`] }); }
+            
+            floors.push({ level: 1, name: 'Floor 1 - Grand Lobby', type: 'lobby', units: ['CONCIERGE', 'SECURITY', 'PACKAGES'] });
             return floors;
         };
 
@@ -119,33 +154,39 @@
             floors.push({ level: 40, name: 'Floor 40 - Penthouse', type: 'penthouse', units: ['PHB-40'] });
             floors.push({ level: 39, name: 'Floor 39 - Penthouse', type: 'penthouse', units: ['PHB-39'] });
             
-            for (let i = 38; i >= 8; i--) {
+            for (let i = 38; i >= 9; i--) {
                 floors.push({ 
                     level: i, name: `Floor ${i} - Residential`, type: 'standard-b', 
                     units: [`${i}01`,`${i}02`,`${i}03`,`${i}04`,`${i}05`,`${i}06`] 
                 });
             }
-            floors.push({ level: 7, name: 'Floor 7 - Amenities & Lounge', type: 'amenities', units: ['POOL', 'GYM'] });
-            for (let i = 6; i >= 1; i--) { floors.push({ level: i, name: `Floor ${i} - Parking`, type: 'parking', units: [`P${i}`] }); }
+            floors.push({ level: 8, name: 'Floor 8 - Business & Social', type: 'social', units: ['COWORK', 'KITCHEN', 'LOUNGE'] });
+            floors.push({ level: 7, name: 'Floor 7 - Health & Retail', type: 'wellness-retail', units: ['POOL', 'GYM', 'KIDS_PLAY', '7-ELEVEN'] });
+            
+            for (let i = 6; i >= 2; i--) { floors.push({ level: i, name: `Floor ${i} - Parking`, type: 'parking', units: [`P${i}`] }); }
+            
+            floors.push({ level: 1, name: 'Floor 1 - Grand Lobby', type: 'lobby', units: ['CONCIERGE', 'SECURITY', 'PACKAGES'] });
             return floors;
         };
 
         // Tower C: 12 Floors (Low Rise Mixed)
         const generateTowerC = () => {
-            return [
-              { level: 12, name: 'Floor 12 - Penthouse', type: 'penthouse', units: ['PHC-12'] },
-              { level: 11, name: 'Floor 11 - Amenities', type: 'amenities', units: ['GYM', 'POOL'] },
-              { level: 10, name: 'Floor 10 - Residential', type: 'standard-c', units: ['1001','1002','1003','1004','1005','1006','1007','1008'] },
-              { level: 9, name: 'Floor 9 - Residential', type: 'standard-c', units: ['901','902','903','904','905','906','907','908'] },
-              { level: 8, name: 'Floor 8 - Residential', type: 'standard-c', units: ['801','802','803','804','805','806','807','808'] },
-              { level: 7, name: 'Floor 7 - Residential', type: 'standard-c', units: ['701','702','703','704','705','706','707','708'] },
-              { level: 6, name: 'Floor 6 - Residential', type: 'standard-c', units: ['601','602','603','604','605','606','607','608'] },
-              { level: 5, name: 'Floor 5 - Residential', type: 'standard-c', units: ['501','502','503','504','505','506','507','508'] },
-              { level: 4, name: 'Floor 4 - Coworking & Retail', type: 'coworking', units: ['COWORK', 'KITCHEN', '7-ELEVEN'] },
-              { level: 3, name: 'Floor 3 - Parking', type: 'parking', units: ['P3'] },
-              { level: 2, name: 'Floor 2 - Parking', type: 'parking', units: ['P2'] },
-              { level: 1, name: 'Floor 1 - Ground Parking', type: 'parking', units: ['P1'] },
-            ];
+            const floors = [];
+            floors.push({ level: 12, name: 'Floor 12 - Penthouse', type: 'penthouse', units: ['PHC-12'] });
+            
+            for (let i = 11; i >= 6; i--) {
+                floors.push({ 
+                    level: i, name: `Floor ${i} - Residential`, type: 'standard-c', 
+                    units: [`${i}01`,`${i}02`,`${i}03`,`${i}04`,`${i}05`,`${i}06`,`${i}07`,`${i}08`] 
+                });
+            }
+            floors.push({ level: 5, name: 'Floor 5 - Business & Social', type: 'social', units: ['COWORK', 'KITCHEN', 'LOUNGE'] });
+            floors.push({ level: 4, name: 'Floor 4 - Health & Retail', type: 'wellness-retail', units: ['POOL', 'GYM', 'KIDS_PLAY', '7-ELEVEN'] });
+            
+            for (let i = 3; i >= 2; i--) { floors.push({ level: i, name: `Floor ${i} - Parking`, type: 'parking', units: [`P${i}`] }); }
+            
+            floors.push({ level: 1, name: 'Floor 1 - Grand Lobby', type: 'lobby', units: ['CONCIERGE', 'SECURITY', 'PACKAGES'] });
+            return floors;
         };
 
         const BUILDINGS = {
@@ -158,14 +199,12 @@
           const [activeBuildingId, setActiveBuildingId] = useState('A');
           const building = BUILDINGS[activeBuildingId];
           
-          // Default to the first standard residential floor of the selected building
           const [activeFloor, setActiveFloor] = useState(building.floors.find(f => f.type.startsWith('standard')) || building.floors[0]);
           const [activeUnit, setActiveUnit] = useState(null);
 
           const handleBuildingSwitch = (id) => {
               setActiveBuildingId(id);
               const newBuilding = BUILDINGS[id];
-              // Find the first residential floor to show by default
               const defaultFloor = newBuilding.floors.find(f => f.type.startsWith('standard')) || newBuilding.floors[0];
               setActiveFloor(defaultFloor);
               setActiveUnit(null);
@@ -181,9 +220,10 @@
           };
 
           const getFloorVisualClass = (type) => {
+            if(type === 'lobby') return 'bg-blue-900/50 border-blue-700';
             if(type === 'parking') return 'bg-slate-700/50 border-slate-600';
-            if(type === 'coworking') return 'bg-purple-900/50 border-purple-700';
-            if(type === 'amenities') return 'bg-cyan-900/50 border-cyan-700';
+            if(type === 'wellness-retail') return 'bg-cyan-900/50 border-cyan-700';
+            if(type === 'social') return 'bg-pink-900/50 border-pink-700';
             if(type === 'penthouse') return 'bg-amber-700/50 border-amber-600';
             return 'bg-slate-800 border-slate-700';
           };
@@ -302,6 +342,44 @@
 
                     <div className="w-full max-w-4xl aspect-[16/8] relative">
                       
+                      {/* --- LOBBY LEVEL (Floor 1) --- */}
+                      {activeFloor.type === 'lobby' && (
+                        <div className="w-full h-full grid grid-cols-8 grid-rows-[3fr_1fr_3fr] gap-1.5 relative z-10">
+                          <div onClick={() => handleUnitSelect('CONCIERGE', 'CONCIERGE')} className={`col-span-3 border-2 rounded-tl-xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${UNIT_SPECS['CONCIERGE'].color} ${UNIT_SPECS['CONCIERGE'].borderColor} ${UNIT_SPECS['CONCIERGE'].hoverColor} ${activeUnit?.id === 'CONCIERGE' ? 'ring-2 ring-amber-500 z-20' : ''}`}>
+                              <i className="fas fa-bell text-blue-400 text-2xl mb-2"></i>
+                              <span className="font-bold text-lg text-white">Concierge</span>
+                          </div>
+                          
+                          <div className="bg-slate-800/80 border border-slate-700 flex flex-col items-center justify-center pointer-events-none col-span-2">
+                            <div className="w-6 h-6 border border-slate-600 mb-1 flex items-center justify-center"><span className="text-[8px]">LIFT</span></div>
+                            <div className="w-6 h-6 border border-slate-600 flex items-center justify-center"><span className="text-[8px]">LIFT</span></div>
+                          </div>
+                          
+                          <div className="col-span-3 border-2 rounded-tr-xl flex flex-col items-center justify-center border-slate-700 bg-slate-800/30">
+                             <i className="fas fa-door-open text-slate-500 text-2xl mb-2"></i>
+                             <span className="font-bold text-lg text-slate-400">Main Entrance</span>
+                          </div>
+
+                          <div className="col-span-8 bg-slate-300/10 border-y border-slate-700 flex items-center justify-center pointer-events-none">
+                             <span className="text-slate-500 text-xs tracking-[0.5em] uppercase">Grand Lobby & Reception</span>
+                          </div>
+
+                          <div onClick={() => handleUnitSelect('SECURITY', 'SECURITY')} className={`col-span-3 border-2 rounded-bl-xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${UNIT_SPECS['SECURITY'].color} ${UNIT_SPECS['SECURITY'].borderColor} ${UNIT_SPECS['SECURITY'].hoverColor} ${activeUnit?.id === 'SECURITY' ? 'ring-2 ring-amber-500 z-20' : ''}`}>
+                             <i className="fas fa-shield-alt text-slate-400 text-xl mb-1"></i>
+                             <span className="font-bold text-sm text-white">Security</span>
+                          </div>
+                          
+                          <div className="bg-slate-800/80 border border-slate-700 flex flex-col items-center justify-center pointer-events-none col-span-2">
+                            <span className="text-[10px] text-slate-500 rotate-90 tracking-widest">STAIRS</span>
+                          </div>
+                          
+                          <div onClick={() => handleUnitSelect('PACKAGES', 'PACKAGES')} className={`col-span-3 border-2 rounded-br-xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${UNIT_SPECS['PACKAGES'].color} ${UNIT_SPECS['PACKAGES'].borderColor} ${UNIT_SPECS['PACKAGES'].hoverColor} ${activeUnit?.id === 'PACKAGES' ? 'ring-2 ring-amber-500 z-20' : ''}`}>
+                             <i className="fas fa-box text-indigo-400 text-xl mb-1"></i>
+                             <span className="font-bold text-sm text-white">Package Drop Zone</span>
+                          </div>
+                        </div>
+                      )}
+
                       {/* --- PARKING LAYOUT --- */}
                       {activeFloor.type === 'parking' && (
                         <div className="w-full h-full grid grid-cols-8 grid-rows-[3fr_1fr_3fr] gap-1.5 relative z-10" onClick={() => handleUnitSelect(activeFloor.units[0], 'PARKING')}>
@@ -326,33 +404,37 @@
                         </div>
                       )}
 
-                      {/* --- COWORKING & RETAIL (Tower C only) --- */}
-                      {activeFloor.type === 'coworking' && (
+                      {/* --- HEALTH & RETAIL --- */}
+                      {activeFloor.type === 'wellness-retail' && (
                         <div className="w-full h-full grid grid-cols-8 grid-rows-[3fr_1fr_3fr] gap-1.5 relative z-10">
-                          <div onClick={() => handleUnitSelect('COWORK', 'COWORK')} className={`col-span-1 border-2 rounded-tl-xl flex items-center justify-center cursor-pointer transition-all duration-300 ${UNIT_SPECS['COWORK'].color} ${UNIT_SPECS['COWORK'].borderColor} ${UNIT_SPECS['COWORK'].hoverColor} ${activeUnit?.id === 'COWORK' ? 'ring-2 ring-amber-500 z-20' : ''}`}><i className="fas fa-wifi text-purple-400 text-xl"></i></div>
-                          <div className="bg-slate-800/80 border border-slate-700 flex flex-col items-center justify-center pointer-events-none">
+                          <div onClick={() => handleUnitSelect('POOL', 'POOL')} className={`col-span-3 border-2 rounded-tl-xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${UNIT_SPECS['POOL'].color} ${UNIT_SPECS['POOL'].borderColor} ${UNIT_SPECS['POOL'].hoverColor} ${activeUnit?.id === 'POOL' ? 'ring-2 ring-amber-500 z-20' : ''}`}>
+                              <i className="fas fa-water text-cyan-400 text-2xl mb-2"></i>
+                              <span className="font-bold text-lg text-white">Infinity Pool</span>
+                          </div>
+                          
+                          <div className="bg-slate-800/80 border border-slate-700 flex flex-col items-center justify-center pointer-events-none col-span-2">
                             <div className="w-6 h-6 border border-slate-600 mb-1 flex items-center justify-center"><span className="text-[8px]">LIFT</span></div>
                             <div className="w-6 h-6 border border-slate-600 flex items-center justify-center"><span className="text-[8px]">LIFT</span></div>
                           </div>
-                          <div onClick={() => handleUnitSelect('COWORK', 'COWORK')} className={`col-span-4 border-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${UNIT_SPECS['COWORK'].color} ${UNIT_SPECS['COWORK'].borderColor} ${UNIT_SPECS['COWORK'].hoverColor} ${activeUnit?.id === 'COWORK' ? 'ring-2 ring-amber-500 z-20' : ''}`}>
-                             <span className="font-bold text-xl text-white">Co-Working Lounge</span>
-                          </div>
-                          <div onClick={() => handleUnitSelect('KITCHEN', 'KITCHEN')} className={`col-span-2 border-2 rounded-tr-xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${UNIT_SPECS['KITCHEN'].color} ${UNIT_SPECS['KITCHEN'].borderColor} ${UNIT_SPECS['KITCHEN'].hoverColor} ${activeUnit?.id === 'KITCHEN' ? 'ring-2 ring-amber-500 z-20' : ''}`}>
-                             <i className="fas fa-mug-hot text-orange-400 text-xl mb-1"></i>
-                             <span className="font-bold text-sm text-white">Kitchen</span>
+                          
+                          <div onClick={() => handleUnitSelect('GYM', 'GYM')} className={`col-span-3 border-2 rounded-tr-xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${UNIT_SPECS['GYM'].color} ${UNIT_SPECS['GYM'].borderColor} ${UNIT_SPECS['GYM'].hoverColor} ${activeUnit?.id === 'GYM' ? 'ring-2 ring-amber-500 z-20' : ''}`}>
+                             <i className="fas fa-dumbbell text-rose-400 text-2xl mb-2"></i>
+                             <span className="font-bold text-xl text-white">Fitness Center</span>
                           </div>
 
                           <div className="col-span-8 bg-slate-300/10 border-y border-slate-700 flex items-center justify-center pointer-events-none">
-                             <span className="text-slate-500 text-xs tracking-[0.5em] uppercase">Main Corridor</span>
+                             <span className="text-slate-500 text-xs tracking-[0.5em] uppercase">Health & Retail Corridor</span>
                           </div>
 
-                          <div onClick={() => handleUnitSelect('COWORK', 'COWORK')} className={`col-span-1 border-2 rounded-bl-xl flex items-center justify-center cursor-pointer transition-all duration-300 ${UNIT_SPECS['COWORK'].color} ${UNIT_SPECS['COWORK'].borderColor} ${UNIT_SPECS['COWORK'].hoverColor} ${activeUnit?.id === 'COWORK' ? 'ring-2 ring-amber-500 z-20' : ''}`}><i className="fas fa-wifi text-purple-400 text-xl"></i></div>
-                          <div className="bg-slate-800/80 border border-slate-700 flex flex-col items-center justify-center pointer-events-none">
+                          <div onClick={() => handleUnitSelect('KIDS_PLAY', 'KIDS_PLAY')} className={`col-span-3 border-2 rounded-bl-xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${UNIT_SPECS['KIDS_PLAY'].color} ${UNIT_SPECS['KIDS_PLAY'].borderColor} ${UNIT_SPECS['KIDS_PLAY'].hoverColor} ${activeUnit?.id === 'KIDS_PLAY' ? 'ring-2 ring-amber-500 z-20' : ''}`}>
+                             <i className="fas fa-child text-yellow-400 text-xl mb-1"></i>
+                             <span className="font-bold text-sm text-white">Kids Play Area</span>
+                          </div>
+                          
+                          <div className="bg-slate-800/80 border border-slate-700 flex flex-col items-center justify-center pointer-events-none col-span-2">
                             <span className="text-[10px] text-slate-500 rotate-90 tracking-widest">STAIRS</span>
                           </div>
-                          <div onClick={() => handleUnitSelect('COWORK', 'COWORK')} className={`col-span-3 border-2 flex items-center justify-center cursor-pointer transition-all duration-300 ${UNIT_SPECS['COWORK'].color} ${UNIT_SPECS['COWORK'].borderColor} ${UNIT_SPECS['COWORK'].hoverColor} ${activeUnit?.id === 'COWORK' ? 'ring-2 ring-amber-500 z-20' : ''}`}>
-                             <span className="text-sm text-purple-400">Meeting Rooms</span>
-                          </div>
+                          
                           <div onClick={() => handleUnitSelect('7-ELEVEN', '7-ELEVEN')} className={`col-span-3 border-2 rounded-br-xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${UNIT_SPECS['7-ELEVEN'].color} ${UNIT_SPECS['7-ELEVEN'].borderColor} ${UNIT_SPECS['7-ELEVEN'].hoverColor} ${activeUnit?.id === '7-ELEVEN' ? 'ring-2 ring-amber-500 z-20' : ''}`}>
                              <i className="fas fa-store text-red-400 text-xl mb-1"></i>
                              <span className="font-bold text-sm text-white">7-Eleven</span>
@@ -360,30 +442,35 @@
                         </div>
                       )}
 
-                      {/* --- AMENITIES --- */}
-                      {activeFloor.type === 'amenities' && (
+                      {/* --- BUSINESS & SOCIAL --- */}
+                      {activeFloor.type === 'social' && (
                         <div className="w-full h-full grid grid-cols-8 grid-rows-[3fr_1fr_3fr] gap-1.5 relative z-10">
-                          <div onClick={() => handleUnitSelect('POOL', 'POOL')} className={`col-span-1 border-2 rounded-tl-xl flex items-center justify-center cursor-pointer transition-all duration-300 ${UNIT_SPECS['POOL'].color} ${UNIT_SPECS['POOL'].borderColor} ${UNIT_SPECS['POOL'].hoverColor} ${activeUnit?.id === 'POOL' ? 'ring-2 ring-amber-500 z-20' : ''}`}><i className="fas fa-water text-cyan-400 text-xl"></i></div>
-                          <div className="bg-slate-800/80 border border-slate-700 flex flex-col items-center justify-center pointer-events-none">
+                          <div onClick={() => handleUnitSelect('COWORK', 'COWORK')} className={`col-span-6 border-2 rounded-tl-xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${UNIT_SPECS['COWORK'].color} ${UNIT_SPECS['COWORK'].borderColor} ${UNIT_SPECS['COWORK'].hoverColor} ${activeUnit?.id === 'COWORK' ? 'ring-2 ring-amber-500 z-20' : ''}`}>
+                              <i className="fas fa-wifi text-purple-400 text-2xl mb-2"></i>
+                              <span className="font-bold text-lg text-white">Co-Working Space</span>
+                          </div>
+                          
+                          <div className="bg-slate-800/80 border border-slate-700 flex flex-col items-center justify-center pointer-events-none col-span-2 rounded-tr-xl">
                             <div className="w-6 h-6 border border-slate-600 mb-1 flex items-center justify-center"><span className="text-[8px]">LIFT</span></div>
                             <div className="w-6 h-6 border border-slate-600 flex items-center justify-center"><span className="text-[8px]">LIFT</span></div>
                           </div>
-                          <div onClick={() => handleUnitSelect('POOL', 'POOL')} className={`col-span-6 border-2 rounded-tr-xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${UNIT_SPECS['POOL'].color} ${UNIT_SPECS['POOL'].borderColor} ${UNIT_SPECS['POOL'].hoverColor} ${activeUnit?.id === 'POOL' ? 'ring-2 ring-amber-500 z-20' : ''}`}>
-                             <span className="font-bold text-2xl text-white">Infinity Pool</span>
-                             <span className="text-sm text-cyan-400">Outdoor Deck & Cabanas</span>
-                          </div>
-
+                          
                           <div className="col-span-8 bg-slate-300/10 border-y border-slate-700 flex items-center justify-center pointer-events-none">
-                             <span className="text-slate-500 text-xs tracking-[0.5em] uppercase">Main Corridor</span>
+                             <span className="text-slate-500 text-xs tracking-[0.5em] uppercase">Social Corridor</span>
                           </div>
 
-                          <div onClick={() => handleUnitSelect('GYM', 'GYM')} className={`col-span-1 border-2 rounded-bl-xl flex items-center justify-center cursor-pointer transition-all duration-300 ${UNIT_SPECS['GYM'].color} ${UNIT_SPECS['GYM'].borderColor} ${UNIT_SPECS['GYM'].hoverColor} ${activeUnit?.id === 'GYM' ? 'ring-2 ring-amber-500 z-20' : ''}`}><i className="fas fa-dumbbell text-rose-400 text-xl"></i></div>
-                          <div className="bg-slate-800/80 border border-slate-700 flex flex-col items-center justify-center pointer-events-none">
-                            <span className="text-[10px] text-slate-500 rotate-90 tracking-widest">STAIRS</span>
+                          <div onClick={() => handleUnitSelect('KITCHEN', 'KITCHEN')} className={`col-span-3 border-2 rounded-bl-xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${UNIT_SPECS['KITCHEN'].color} ${UNIT_SPECS['KITCHEN'].borderColor} ${UNIT_SPECS['KITCHEN'].hoverColor} ${activeUnit?.id === 'KITCHEN' ? 'ring-2 ring-amber-500 z-20' : ''}`}>
+                             <i className="fas fa-utensils text-orange-400 text-xl mb-1"></i>
+                             <span className="font-bold text-sm text-white">Shared Kitchen</span>
                           </div>
-                          <div onClick={() => handleUnitSelect('GYM', 'GYM')} className={`col-span-6 border-2 rounded-br-xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${UNIT_SPECS['GYM'].color} ${UNIT_SPECS['GYM'].borderColor} ${UNIT_SPECS['GYM'].hoverColor} ${activeUnit?.id === 'GYM' ? 'ring-2 ring-amber-500 z-20' : ''}`}>
-                             <span className="font-bold text-2xl text-white">Fitness Center</span>
-                             <span className="text-sm text-rose-400">Yoga Studio & Weights</span>
+                          
+                          <div onClick={() => handleUnitSelect('LOUNGE', 'LOUNGE')} className={`col-span-3 border-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${UNIT_SPECS['LOUNGE'].color} ${UNIT_SPECS['LOUNGE'].borderColor} ${UNIT_SPECS['LOUNGE'].hoverColor} ${activeUnit?.id === 'LOUNGE' ? 'ring-2 ring-amber-500 z-20' : ''}`}>
+                             <i className="fas fa-couch text-pink-400 text-xl mb-1"></i>
+                             <span className="font-bold text-sm text-white">Resident Lounge</span>
+                          </div>
+                          
+                          <div className="bg-slate-800/80 border border-slate-700 flex flex-col items-center justify-center pointer-events-none col-span-2 rounded-br-xl">
+                            <span className="text-[10px] text-slate-500 rotate-90 tracking-widest">STAIRS</span>
                           </div>
                         </div>
                       )}
@@ -391,7 +478,6 @@
                       {/* --- TOWER A: STUDIO / 1BR CONFIG --- */}
                       {activeFloor.type === 'standard-a' && (
                         <div className="w-full h-full grid grid-cols-6 grid-rows-[3fr_1fr_3fr] gap-1.5 relative z-10">
-                          {/* TOP ROW: 5 Units (Studios and 1BRs) */}
                           {[
                             { u: activeFloor.units[0], t: '1-BED', span: 'col-span-1 rounded-tl-xl' },
                             { u: activeFloor.units[1], t: 'STUDIO', span: 'col-span-1' },
@@ -421,7 +507,6 @@
                              <span className="text-slate-500 text-xs tracking-[0.5em] uppercase">Main Corridor</span>
                           </div>
 
-                          {/* BOTTOM ROW: 5 Units */}
                           {[
                             { u: activeFloor.units[5], t: '1-BED', span: 'col-span-1 rounded-bl-xl' },
                             { u: activeFloor.units[6], t: 'STUDIO', span: 'col-span-1' },
@@ -451,7 +536,6 @@
                       {/* --- TOWER B: 1BR / 2BR / 3BR CONFIG --- */}
                       {activeFloor.type === 'standard-b' && (
                         <div className="w-full h-full grid grid-cols-8 grid-rows-[3fr_1fr_3fr] gap-1.5 relative z-10">
-                          {/* TOP ROW: Large Corner units (3BR and 2BR) + 1BR mid */}
                           {[
                             { u: activeFloor.units[0], t: '3-BED', span: 'col-span-3 rounded-tl-xl' },
                             { u: 'CORE', t: 'CORE', span: 'col-span-1' },
@@ -479,7 +563,6 @@
                              <span className="text-slate-500 text-xs tracking-[0.5em] uppercase">Main Corridor</span>
                           </div>
 
-                          {/* BOTTOM ROW */}
                           {[
                             { u: activeFloor.units[3], t: '2-BED', span: 'col-span-3 rounded-bl-xl' },
                             { u: 'CORE2', t: 'CORE', span: 'col-span-1' },
@@ -504,10 +587,9 @@
                         </div>
                       )}
 
-                      {/* --- TOWER C: OLD MIXED CONFIG --- */}
+                      {/* --- TOWER C: MIXED CONFIG --- */}
                       {activeFloor.type === 'standard-c' && (
                         <div className="w-full h-full grid grid-cols-6 grid-rows-[3fr_1fr_3fr] gap-1.5 relative z-10">
-                          {/* TOP ROW */}
                           {[
                             { u: activeFloor.units[0], t: '2-BED', span: 'col-span-2 rounded-tl-xl' },
                             { u: 'CORE', t: 'CORE', span: 'col-span-1' },
@@ -536,7 +618,6 @@
                              <span className="text-slate-500 text-xs tracking-[0.5em] uppercase">Main Corridor</span>
                           </div>
 
-                          {/* BOTTOM ROW */}
                           {[
                             { u: activeFloor.units[4], t: '2-BED', span: 'col-span-2 rounded-bl-xl' },
                             { u: 'CORE2', t: 'CORE', span: 'col-span-1' },
@@ -634,7 +715,7 @@
                           
                           <div className="bg-slate-950 border border-slate-800 p-4 rounded-xl flex flex-col items-center justify-center text-center col-span-2">
                             <i className="fas fa-expand-arrows-alt text-xl text-slate-400 mb-2"></i>
-                            <span className="text-2xl font-light text-white">{activeUnit.sqft} <span className="text-sm text-slate-500">SQ FT</span></span>
+                            <span className="text-2xl font-light text-white">{activeUnit.sqm} <span className="text-sm text-slate-500">SQM</span></span>
                             <span className="text-xs text-slate-500 uppercase tracking-wider">Internal Area</span>
                           </div>
                         </div>
@@ -650,8 +731,6 @@
                             {activeUnit.isResidential ? 'Starting From' : 'Access'}
                           </p>
                           <p className="text-2xl font-light text-white mb-6">{activeUnit.price}</p>
-                          
-                          {/* Inquire Now removed from here and Header as requested */}
                         </div>
                       </div>
                     ) : (
